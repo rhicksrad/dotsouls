@@ -6,38 +6,56 @@
 <title>Dotsouls+ — Level 1: The Fallen Chapel</title>
 <style>
   :root{
-    --bg:#0a0a0a;--fg:#ddd;--panel:#0d0d0d;--line:#222;--btn:#222;--btn2:#333;
+    --bg:#08090b;--fg:#ddd;--panel:#0d0f12;--line:#1c2129;--btn:#1a1f26;--btn2:#222834;
     --good:#6df;--warn:#ff6;--bad:#f77;--accent:#c6f;
+    --chapelTop:#12161c;--stained1:#5b6bd4;--stained2:#b04b9e;--stained3:#66c7b9;--stainedLead:#1c2330;
   }
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Arial,sans-serif}
-  #ui{position:fixed;inset:0;display:grid;grid-template-columns:1fr minmax(300px,28vw);grid-template-rows:1fr;gap:0}
-  #left{display:grid;grid-template-rows:1fr auto;min-width:0;min-height:0;overflow:hidden}
-  #wrap{display:grid;align-items:center;justify-items:start;min-width:0;min-height:0;padding-right:14px}
-  #c{image-rendering:pixelated;border:2px solid #333;background:#000;max-width:100%;max-height:100%}
-  #bottombar{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-top:1px solid var(--line);background:#0c0c0c}
+  html,body{height:100%;margin:0;background:
+    radial-gradient(1200px 600px at 70% -10%, rgba(90,80,140,.16), transparent 60%),
+    radial-gradient(900px 500px at 15% 0%, rgba(40,80,160,.14), transparent 55%),
+    var(--bg);
+    color:var(--fg);
+    font-family:system-ui,Segoe UI,Arial,sans-serif}
+  #ui{position:fixed;inset:0;display:grid;grid-template-columns:1fr minmax(300px,28vw);grid-template-rows:auto 1fr auto;gap:0}
+  #topbar{
+    grid-column:1/-1;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--line);
+    background:
+      linear-gradient(to bottom, rgba(12,16,22,.6), rgba(12,16,22,.35) 50%, rgba(12,16,22,.6)),
+      linear-gradient(to bottom, #0c1017, #0a0d13 40%, #0b0e14);
+    padding:.5rem .75rem;
+  }
+  #gameTitle{font-weight:700;letter-spacing:.02em}
+  #levelName{opacity:.85}
+  .barWrap{display:flex;align-items:center;gap:.5rem;min-width:200px}
+  .bars{display:flex;gap:.6rem;align-items:center}
+  .bar{position:relative;width:180px;height:16px;background:#161b24;border:1px solid #2a3342;border-radius:999px;overflow:hidden}
+  .barFill{position:absolute;inset:0;width:50%;background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #2b8;transform-origin:left center;transition:width .12s ease}
+  .bar.hp .barFill{background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #c33}
+  .bar.sta .barFill{background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #3cb371}
+  .barLabel{font-size:.9rem;opacity:.85}
+  #left{display:grid;grid-template-rows:1fr auto;min-width:0;min-height:0;overflow:hidden;position:relative}
+  #wrap{display:grid;align-items:center;justify-items:start;min-width:0;min-height:0;padding:10px 14px 0 14px}
+  #c{image-rendering:pixelated;border:2px solid #2a3342;background:linear-gradient(#07090d,#070a10);max-width:100%;max-height:100%;
+     box-shadow:0 10px 40px rgba(0,0,0,.55), inset 0 0 28px rgba(20,30,60,.35)}
+  #bottombar{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-top:1px solid var(--line);background:#0c0f14}
   #bottombar .hint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem;opacity:.9}
-  button{background:var(--btn);color:var(--fg);border:2px solid #444;border-radius:8px;padding:.35rem .6rem;cursor:pointer;font-size:.9rem}
+  button{background:var(--btn);color:var(--fg);border:2px solid #344055;border-radius:10px;padding:.38rem .7rem;cursor:pointer;font-size:.9rem;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
   button:hover{background:var(--btn2)}
-  kbd{background:#222;border:1px solid #444;border-radius:4px;padding:.05rem .3rem;font-size:.85rem}
-  #panel{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-width:300px;max-width:440px;overflow:auto}
-  .section{padding:.7rem .8rem;border-bottom:1px solid var(--line)}
-  .section h2{margin:.1rem 0 .5rem;font-size:1.05rem;color:#eee;display:flex;align-items:center;justify-content:space-between}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem;font-size:.95rem}
-  .label{opacity:.75}
-  .value{color:#eee}
-  .note{opacity:.85}
+  kbd{background:#222a33;border:1px solid #3b475a;border-radius:4px;padding:.05rem .3rem;font-size:.85rem}
+  #panel{border-left:1px solid var(--line);background:
+      linear-gradient(180deg, rgba(20,28,40,.65), rgba(12,16,24,.65)),
+      var(--panel);display:flex;flex-direction:column;min-width:300px;max-width:440px;overflow:auto}
+  .section{padding:.75rem .9rem;border-bottom:1px solid var(--line)}
+  .section h2{margin:.1rem 0 .5rem;font-size:1.05rem;color:#eef;display:flex;align-items:center;justify-content:space-between}
   .small{font-size:.92rem}
-  #arrowsHint{font-family:monospace;font-size:1.1rem;letter-spacing:.15rem}
   #logWrap{overflow:hidden;max-height:12rem;transition:max-height .2s}
   #logWrap.hide{max-height:0}
   #msg{padding:.45rem .1rem .25rem .1rem;font-size:.95rem;white-space:normal;line-height:1.35;word-break:break-word}
   .bad{color:var(--bad)} .dim{opacity:.7}
   .inlineCanvas{image-rendering:pixelated}
-  .collapseBody.hide{display:none}
-  .collapseBtn{font-size:.8rem;border-radius:999px;padding:.15rem .5rem}
   #modalOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:6}
   #modalOverlay.show{display:grid}
-  .modalCard{background:#0b0b0b;border:1px solid #333;border-radius:12px;min-width:260px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+  .modalCard{background:#0b0f14;border:1px solid #2a3342;border-radius:12px;min-width:260px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)}
   .modalCard h3{margin:.2rem 0 .7rem}
   .row{display:flex;gap:.5rem;align-items:center;justify-content:flex-end;margin-top:.8rem}
   #death{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7;cursor:pointer}
@@ -46,60 +64,101 @@
   #win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7}
   #win.show{display:flex}
   #win .text{font-size:7vw;color:#8f8;text-shadow:0 0 18px rgba(127,255,200,.25);font-weight:800;letter-spacing:.08em}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:.45rem;background:#121827;border:1px solid #2b3750;color:#cfe7ff;
+    padding:.25rem .55rem;border-radius:999px;font-size:.78rem;letter-spacing:.03em
+  }
+  .badgeDot{width:.6rem;height:.6rem;border-radius:50%;background:conic-gradient(from 0deg, #6bc1ff, #c870ff, #ff8d6b, #ffd36b, #6bc1ff);box-shadow:0 0 8px rgba(120,160,255,.35)}
+  .badgeLine{width:1px;height:12px;background:#2b3750}
+
+  #campstoreSection{display:none}
+
   @media (max-width:900px){
     #ui{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
-    #panel{grid-row:1;border-left:none;border-bottom:1px solid var(--line);max-width:none}
+    #panel{grid-row:3;border-left:none;border-top:1px solid var(--line);max-width:none}
     #left{grid-row:2}
-    #bottombar{grid-row:3}
+    #bottombar{grid-row:4}
     #logWrap{max-height:0}
     #death .text{font-size:16vw}
     #win .text{font-size:12vw}
   }
+
+  #campMenuOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:8}
+  #campMenuOverlay.show{display:grid}
+  .menuCard{background:#0b0f14;border:1px solid #2a3342;border-radius:12px;min-width:280px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+  .menuCard h3{margin:.2rem 0 .6rem}
+  .menuGrid{display:grid;grid-template-columns:1fr auto auto;gap:.4rem .6rem;align-items:center}
+  .price{color:#ffef6b}
+  .disabled{opacity:.45;filter:grayscale(0.6)}
 </style>
 </head>
 <body>
 <div id="ui">
+  <div id="topbar" role="banner">
+    <div>
+      <div id="gameTitle">Dot Souls</div>
+      <div id="levelName" class="small dim">Level 1 — The Fallen Chapel</div>
+    </div>
+    <div class="bars" aria-label="Player vital bars">
+      <div class="barWrap">
+        <span class="barLabel">HP</span>
+        <div class="bar hp" aria-live="polite" title="Health">
+          <div id="hpFill" class="barFill" style="width:50%"></div>
+        </div>
+        <span class="small" id="hpText">0/0</span>
+      </div>
+      <div class="barWrap">
+        <span class="barLabel">Stamina</span>
+        <div class="bar sta" aria-live="polite" title="Stamina">
+          <div id="staFill" class="barFill" style="width:50%"></div>
+        </div>
+        <span class="small" id="staText">0/0</span>
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <span class="badge"><span class="badgeDot"></span><span>Fallen Chapel</span><span class="badgeLine"></span><span>Dotsouls+</span></span>
+  </div>
+
   <div id="left">
     <div id="wrap"><canvas id="c" width="256" height="256" role="img" aria-label="Level 1: The Fallen Chapel"></canvas></div>
     <div id="bottombar">
-      <div class="hint">Move Arrows/WASD • Wait . • Swing Space • Descend &gt; • Restart R • New N • Size 1/2/3 • High Contrast H • Colorblind C • Overlays V • Toggle Log M</div>
+      <div class="hint">Move Arrows/WASD • Wait . • Swing Space • Descend &gt; • Reset R/N • Size 1/2/3 • High Contrast H • Colorblind C • Overlays V • Toggle Log M • Camp Menu L</div>
       <button id="new">Reset Level 1</button>
     </div>
   </div>
+
   <div id="panel">
-    <div id="status" class="section">
-      <h2> Level 1 — The Fallen Chapel </h2>
-      <div class="small dim">Face the first true threat. Only Space swings deal damage. Walking into enemies hurts you.</div>
-      <div class="grid" style="margin-top:.6rem">
-        <div><span class="label">HP:</span> <span class="value" id="v_hp">0</span>/<span class="value" id="v_hpmax">0</span></div>
-        <div><span class="label">Stamina:</span> <span class="value" id="v_sta">0</span>/<span class="value" id="v_stamax">0</span></div>
-        <div><span class="label">Souls:</span> <span class="value" id="v_souls">0</span></div>
-        <div><span class="label">Arrows:</span> <span class="value" id="v_arrows">0</span></div>
-        <div><span class="label">Weapon:</span> <span class="value" id="v_wpn">Dagger</span></div>
-        <div><span class="label">Seed:</span> <span class="value" id="v_seed"></span></div>
-      </div>
-      <div id="campHint" class="note" style="margin-top:.5rem;display:none;color:var(--good)"></div>
-    </div>
-    <div id="controlsHow" class="section">
-      <div class="collapseHeader">
-        <h2 style="margin:0">Controls</h2>
-        <button id="controlsToggle" class="collapseBtn" aria-expanded="true" aria-controls="controlsBody">Collapse</button>
-      </div>
-      <div id="controlsBody" class="collapseContent">
-        <div class="small">
-          Move with WASD/Arrows. Space swings your weapon (the only way to damage enemies). Walking onto an enemy tile does NOT attack; instead, you take damage. Use . to wait a turn. Descend the staircase (>) to win this level.
-        </div>
-        <div class="small dim" style="margin-top:.5rem">
-          Tip: The boss has special moves and a larger sprite. Watch for patterns.
-        </div>
-      </div>
-    </div>
     <div id="events" class="section" style="border-bottom:none">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem">
         <h2 style="margin:0">Events</h2>
         <button id="logToggle">Collapse</button>
       </div>
       <div id="logWrap"><div id="msg"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="campMenuOverlay" aria-hidden="true">
+  <div class="menuCard" role="dialog" aria-modal="true">
+    <h3>Camp Menu</h3>
+    <div class="small dim" id="campMenuStatus" style="margin-bottom:.6rem"></div>
+    <div id="menuGrid" class="menuGrid">
+      <div class="hdr" style="grid-column:1/-1;opacity:.9;margin:.2rem 0">Upgrades</div>
+      <div>Increase Max HP</div><div class="price">20</div><button data-buy="hp">Buy</button>
+      <div>Increase Max Stamina</div><div class="price">18</div><button data-buy="sta">Buy</button>
+      <div>Sharpen Weapon</div><div class="price">25</div><button data-buy="sharp">Buy</button>
+      <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Arms</div>
+      <div>Sword</div><div class="price">30</div><button data-buy="sword">Buy</button>
+      <div>Spear</div><div class="price">30</div><button data-buy="spear">Buy</button>
+      <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Boons</div>
+      <div>Light of the Chapel</div><div class="price">15</div><button data-buy="light">Buy</button>
+    </div>
+    <div class="row" style="justify-content:space-between;margin-top:.9rem">
+      <div class="small">Souls: <span id="menuSouls">0</span></div>
+      <div>
+        <button id="menuClose">Close (Esc)</button>
+      </div>
     </div>
   </div>
 </div>
@@ -116,23 +175,62 @@
 <div id="win"><div class="text">VICTORY</div></div>
 
 <script type="module">
-/*
-  Fixes:
-   - Death flow now shows YOU DIED overlay first. After user click/keypress, we perform campfire rekindle (respawn at checkpoint) if available.
-   - Grant souls on each mob kill (slime/cultist small amounts, boss larger). Souls only granted on kill, not on hit.
-*/
-
+// Grid size and tile size
 let W=48,H=32,T=8;
 const can=document.getElementById('c'),ctx=can.getContext('2d');
 const $=id=>document.getElementById(id);
-const vhp=$('v_hp'),vhpmax=$('v_hpmax'),vsta=$('v_sta'),vstamax=$('v_stamax'),
-      vsouls=$('v_souls'),varrows=$('v_arrows'),vseed=$('v_seed'),vwpn=$('v_wpn'),
-      campHint=$('campHint');
 const msg=$('msg'), newBtn=$('new'), logWrap=$('logWrap'), logToggle=$('logToggle');
-const controlsToggle=$('controlsToggle'), controlsBody=$('controlsBody');
 const deathScr=$('death'), winScr=$('win');
 const modalOverlay=$('modalOverlay'), modalClose=$('modalClose');
+// Topbar HUD
+const hpFill=$('hpFill'), staFill=$('staFill'), hpText=$('hpText'), staText=$('staText');
 
+// Camp Menu
+const campMenuOverlay=$('campMenuOverlay'), menuGrid=$('menuGrid'), menuClose=$('menuClose'), menuSouls=$('menuSouls'), campMenuStatus=$('campMenuStatus');
+function setMenuOpen(flag){
+  campMenuOverlay.classList.toggle('show', !!flag);
+  if(flag){ updateMenuUI(); }
+}
+function canUseCampMenu(){ return state.map[state.py*W+state.px]===TILE.camp && !state.dead && !state.won }
+function updateMenuUI(){
+  menuSouls.textContent = state.souls;
+  campMenuStatus.textContent = canUseCampMenu() ? 'You are resting at a campfire.' : 'You must stand on a campfire to trade.';
+  for(const b of menuGrid.querySelectorAll('button[data-buy]')){
+    const key=b.dataset.buy, cost=prices[key];
+    let ok=canUseCampMenu() && state.souls>=cost;
+    if(key==='sword' && state.weapon.name==='Sword') ok=false;
+    if(key==='spear' && state.weapon.name==='Spear') ok=false;
+    if(key==='sharp' && state.weapon.melee>=5) ok=false;
+    if(key==='light' && state.boons.light) ok=false;
+    b.disabled=!ok; b.classList.toggle('disabled',!ok);
+    b.title = canUseCampMenu()?`Cost ${cost} souls`:'Stand on a campfire to use the menu';
+  }
+}
+menuClose.onclick=()=>setMenuOpen(false);
+campMenuOverlay.addEventListener('click',(e)=>{ if(e.target===campMenuOverlay) setMenuOpen(false) });
+menuGrid.addEventListener('click',(e)=>{
+  const btn=e.target.closest('button[data-buy]'); if(!btn) return;
+  if(!canUseCampMenu()){ nmsg('You must be at a camp to trade.','#aaa'); updateMenuUI(); return }
+  const key=btn.dataset.buy, cost=prices[key];
+  if(state.souls<cost){ nmsg('Not enough souls.','#aaa'); updateMenuUI(); return }
+  if(key==='hp'){
+    if(spend(cost)){ state.hpmax+=2; state.hp=state.hpmax; nmsg('Max HP +2','#6df'); }
+  }else if(key==='sta'){
+    if(spend(cost)){ state.stamax+=2; state.sta=state.stamax; nmsg('Max Stamina +2','#6df'); }
+  }else if(key==='sharp'){
+    if(state.weapon.melee>=5){ nmsg('Your weapon is honed enough.','#aaa'); }
+    else if(spend(cost)){ state.weapon.melee+=1; nmsg('Weapon sharpened (+1 damage)','#6df'); }
+  }else if(key==='sword'){
+    if(spend(cost)){ equipWeapon('sword') }
+  }else if(key==='spear'){
+    if(spend(cost)){ equipWeapon('spear') }
+  }else if(key==='light'){
+    if(spend(cost)){ state.boons.light=true; nmsg('You feel the chapel’s light follow you.','#ff9'); dirtyFOV=true; }
+  }
+  updateHud(); updateMenuUI();
+});
+
+// Safe storage helpers
 function safeGet(k, def=null){try{const v=window.localStorage.getItem(k);return v===null?def:v}catch(e){return def}}
 function safeSet(k,v){try{window.localStorage.setItem(k,v)}catch(e){}}
 
@@ -154,12 +252,60 @@ function makeSpriteN(sz,fn){
 const makeSprite=(fn)=>makeSpriteN(8,fn);
 const makeSprite16=(fn)=>makeSpriteN(16,fn);
 
-// Sprites (procedural)
+// Palette, FOV, etc.
+let highContrast=false,colorblind=false,overlays=true,fogEnabled=true;
+function hex(r,g,b){return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+function shade(hexColor,delta){const s=hexColor.replace('#','');const n=parseInt(s,16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;function clamp(x){return Math.max(0,Math.min(255,x))}r=clamp(r+delta);g=clamp(g+delta);b=clamp(b+delta);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+function palette(){
+  const baseFloor='#12161a', baseWall='#232b37';
+  const w=(h=>{const s=h.replace('#','');const n=parseInt(s,16);return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}})(baseWall);
+  const f=(h=>{const s=h.replace('#','');const n=parseInt(s,16);return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}})(baseFloor);
+  const bevelLight=hex((w.r*0.82+255*0.18)|0,(w.g*0.82+255*0.18)|0,(w.b*0.82+255*0.18)|0);
+  const bevelDark=hex((w.r*.5)|0,(w.g*.5)|0,(w.b*.5)|0);
+  const shadow=hex((f.r*.58)|0,(f.g*.58)|0,(f.b*.58)|0);
+  const shadowHC=hex((f.r*.42)|0,(f.g*.42)|0,(f.b*.42)|0);
+  return {
+    wall:baseWall,floor:highContrast?shade(baseFloor,-8):baseFloor,
+    floorHC:shade(baseFloor,-12),tileSeen:.28,bevelLight,bevelDark,shadow,shadowHC,
+    hitFill: colorblind?'rgba(0,255,255,.35)':'rgba(255,64,64,.45)',
+    overlay: colorblind?'#0ff':'#fff',
+    miss:'#aaa', gold:'#ffef6b', info:'#8bd5ff',
+    fogDark: 'rgba(0,0,0,0.92)', fogSoft: 'rgba(0,0,0,0.48)',
+    campGlow: 'rgba(255,180,60,0.18)',
+    pew:'#1a2029', altar:'#2b3342'
+  };
+}
+
+// Procedural sprites
+function circle(x,y,cx,cy,r){return Math.hypot(x-cx,y-cy)<=r}
 const spr={
-  player:makeSprite((x,y)=>[200-((x+y)%3)*20,230-((x*y)%3)*20,245]),
-  slime:makeSprite((x,y)=>[60,210-((x+y)%3)*25,80]),
-  cultist:makeSprite((x,y)=>[150-((x+y)%2)*25,60,160]),
-  stair:makeSprite((x,y)=>[230,230,180-((x^y)&1)*60]),
+  player:makeSprite16((x,y)=>{
+    const cx=8, cy=9;
+    let r=40,g=46,b=64,a=255;
+    if(circle(x,y,cx,cy,6)){ r=46; g=54; b=74; }
+    if(circle(x,y,cx,cy-4,5)){ r=30; g=34; b=48; }
+    if(circle(x,y,cx,cy-1,3)){ r=18; g=18; b=22; }
+    if((x===cx-2||x===cx+2) && y===cy-1){ r=240; g=250; b=255; }
+    if(y===cy+2 && Math.abs(x-cx)<=3){ r=90; g=70; b=35; }
+    if(circle(x,y,cx+4,cy+2,1.5)){ r=200; g=170; b=120; }
+    return [r,g,b,a];
+  }),
+  ember:makeSprite((x,y)=>{
+    const d=Math.hypot(x-3.5,y-3.5);
+    let r=255,g=180,b=60,a=0;
+    if(d<1.8){a=255}
+    else if(d<3){a=140}
+    else if(d<3.5){a=70}
+    return [r,g,b,a];
+  }),
+  slime:makeSprite((x,y)=>[60,210-((x+y)%3)*25,100-((x*2+y)%4)*8,255]),
+  cultist:makeSprite((x,y)=>{let r=110,g=66,b=150,a=255; if(((x+y)&1)==0){r+=12;g+=8;b+=8} return [r,g,b,a]}),
+  stair:makeSprite16((x,y)=>{
+    let r=200,g=200,b=170,a=255;
+    const bands=[3,6,9,12]; if(bands.includes(y)) { r=220;g=220;b=190;}
+    if((x==0||y==0||x==15||y==15)) a=0;
+    return [r,g,b,a];
+  }),
   souls:makeSprite((x,y)=>[245-((x+y)&1)*20,220,40]),
   dagger:makeSprite((x,y)=>[200-((x+y)%2)*30,200,200]),
   sword:makeSprite((x,y)=>[230-((x+y)%2)*15,230-((x+y)%2)*15,250]),
@@ -183,9 +329,9 @@ const spr={
   }),
   bloodstain:makeSprite((x,y)=>{
     const cx=3.5,cy=3.5,d=Math.hypot(x-cx,y-cy);
-    let r=120+((x+y)&3)*10,g=10,b=20,a=220;
-    if(d<2.5){r=180;g=20;b=30;a=240}
-    if(((x^y)&1)==0) r+=10;
+    let r=150,g=20,b=30,a=235;
+    if(d<2.2){ r=180; g=24; b=36; a=245 }
+    if(((x^y)&1)==0){ r+=10 }
     return [r,g,b,a];
   }),
 };
@@ -193,32 +339,13 @@ const spr={
 // Tiles
 const TILE={floor:0,wall:1,stair:3,camp:5};
 
-// Palette, FOV, etc.
-let highContrast=false,colorblind=false,overlays=true,fogEnabled=true;
-function hex(r,g,b){return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
-function shade(hexColor,delta){const s=hexColor.replace('#','');const n=parseInt(s,16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;function clamp(x){return Math.max(0,Math.min(255,x))}r=clamp(r+delta);g=clamp(g+delta);b=clamp(b+delta);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
-function palette(){
-  const baseFloor='#13161b', baseWall='#27313f';
-  const w=(h=>{const s=h.replace('#','');const n=parseInt(s,16);return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}})(baseWall);
-  const f=(h=>{const s=h.replace('#','');const n=parseInt(s,16);return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}})(baseFloor);
-  const bevelLight=hex((w.r*0.85+255*0.15)|0,(w.g*0.85+255*0.15)|0,(w.b*0.85+255*0.15)|0);
-  const bevelDark=hex((w.r*.55)|0,(w.g*.55)|0,(w.b*.55)|0);
-  const shadow=hex((f.r*.6)|0,(f.g*.6)|0,(f.b*.6)|0);
-  const shadowHC=hex((f.r*.45)|0,(f.g*.45)|0,(f.b*.45)|0);
-  return {
-    wall:baseWall,floor:highContrast?shade(baseFloor,-10):baseFloor,
-    floorHC:shade(baseFloor,-12),tileSeen:.28,bevelLight,bevelDark,shadow,shadowHC,
-    hitFill: colorblind?'rgba(0,255,255,.35)':'rgba(255,64,64,.45)',
-    overlay: colorblind?'#0ff':'#fff',
-    miss:'#aaa', gold:'#ff6', info:'#6df',
-    fogDark: 'rgba(0,0,0,0.9)', fogSoft: 'rgba(0,0,0,0.45)',
-    campGlow: 'rgba(255,180,60,0.17)'
-  };
-}
+// Chapel decoration tiles (rendered only, not blocking)
+const DEC={none:0, pew:1, banner:2, altar:3, glass:4};
 
+// Visibility
 let floorSeen,visible,newSeenHalo=[];
 let dirtyFOV=true, messages=[], logVisible=!window.matchMedia('(max-width:900px)').matches;
-let anims={floaters:[],trails:[],move:[],pulse:0,shakeT:0,shakeMag:0, bossFx:[], campFx:[]};
+let anims={floaters:[],trails:[],move:[],pulse:0,shakeT:0,shakeMag:0, bossFx:[], campFx:[], shimmerT:0, smoke:[], idle:0};
 let state;
 
 // Utilities
@@ -226,13 +353,15 @@ function nmsg(t,c){const col=c||'#9f9';messages.unshift({t, c:col});messages=mes
 function floatAt(x,y,text,c){anims.floaters.push({x,y,text,c,t:12})}
 function trail(x0,y0,x1,y1){anims.trails.push({x0,y0,x1,y1,t:6})}
 function nudge(e,dx,dy){anims.move.push({e,dx,dy,t:2})}
+function clearNudges(){anims.move = anims.move.filter(m=>m.e===state);}
+// LOS/FOV
 function los(x0,y0,x1,y1,block){let dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,err=dx+dy,x=x0,y=y0;while(true){if(!(x==x0&&y==y0)&&(block(x,y)))return false;if(x==x1&&y==y1)break;let e2=2*err;if(e2>=dy){err+=dy;x+=sx}if(e2<=dx){err+=dx;y+=sy}}return true}
-function computeFOV(){visible.fill(0);const R=10;for(let y=Math.max(0,state.py-R);y<=Math.min(H-1,state.py+R);y++)for(let x=Math.max(0,state.px-R);x<=Math.min(W-1,state.px+R);x++){if(los(state.px,state.py,x,y,(ix,iy)=>{const t=state.map[iy*W+ix];return t==TILE.wall})&&Math.hypot(x-state.px,y-state.py)<=R){const i=y*W+x;visible[i]=1;if(!floorSeen[i]){newSeenHalo.push({x,y,t:10})}floorSeen[i]=1}}}
+function computeFOV(){visible.fill(0);const R=10 + (state.boons.light?2:0);for(let y=Math.max(0,state.py-R);y<=Math.min(H-1,state.py+R);y++)for(let x=Math.max(0,state.px-R);x<=Math.min(W-1,state.px+R);x++){if(los(state.px,state.py,x,y,(ix,iy)=>{const t=state.map[iy*W+ix];return t==TILE.wall})&&Math.hypot(x-state.px,y-state.py)<=R){const i=y*W+x;visible[i]=1;if(!floorSeen[i]){newSeenHalo.push({x,y,t:10})}floorSeen[i]=1}}}
 
 // Map
 function emptyMap(){ return new Uint8Array(W*H).fill(TILE.wall) }
 function setTile(map,x,y,t){ if(x>=0&&y>=0&&x<W&&y<H) map[y*W+x]=t }
-function box(map,x,y,w,h,t){ for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++) setTile(map,i,j,t) }
+function box(map,x,y,w,h,t){ for(let j=y;j<y+h;j++)for(let i=x;i<w+x;i++) setTile(map,i,j,t) }
 function rect(map,x,y,w,h,t){ for(let i=x;i<x+w;i++){setTile(map,i,y,t);setTile(map,i,y+h-1,t)}for(let j=y;j<y+h;j++){setTile(map,x,j,t);setTile(map,x+w-1,j,t)} }
 
 function nearestFloor(map, tx,ty, maxR=6){
@@ -248,8 +377,13 @@ function nearestFloor(map, tx,ty, maxR=6){
   return {x:tx,y:ty};
 }
 
+// Decorative map layer
+let deco;
+
 function buildLevel1(){
   const L={ map:emptyMap(), items:[], mons:[], px:6, py:16, stairs:{x:42,y:16}, camps:[] };
+  deco = new Uint8Array(W*H).fill(DEC.none);
+
   // Nave
   box(L.map,2,2,W-4,H-4,TILE.floor);
   // Pillars
@@ -260,10 +394,28 @@ function buildLevel1(){
   // Gate gap to enter
   setTile(L.map,32,16,TILE.floor);
 
-  // Stairs to descend (win)
+  // Decorative pew rows
+  for(let y=8;y<=24;y+=4){
+    for(let x=5;x<=26;x+=3){
+      if(L.map[y*W+x]===TILE.floor) deco[y*W+x]=DEC.pew;
+    }
+  }
+  // Hanging banners
+  for(let y=6;y<=24;y+=6){
+    deco[y*W+3]=DEC.banner;
+    deco[y*W+(W-4)]=DEC.banner;
+  }
+  // Altar
+  deco[(12)*W+38]=DEC.altar;
+  // Stained glass
+  for(let y=8;y<=22;y+=7){
+    deco[y*W+42]=DEC.glass;
+  }
+
+  // Stairs
   setTile(L.map,L.stairs.x,L.stairs.y,TILE.stair);
 
-  // Camps: one at start, one far from start (near apse)
+  // Camps
   const startCamp = nearestFloor(L.map, 6,16, 2);
   setTile(L.map, startCamp.x, startCamp.y, TILE.camp);
   L.camps.push({x:startCamp.x, y:startCamp.y});
@@ -276,7 +428,7 @@ function buildLevel1(){
   L.mons.push({x:14,y:10,t:'slime',hp:9,atk:2,def:0});
   L.mons.push({x:16,y:20,t:'slime',hp:9,atk:2,def:0});
   L.mons.push({x:20,y:14,t:'cultist',hp:6,atk:2,def:1});
-  // Boss on top of the staircase guarding it
+  // Boss on the staircase
   L.mons.push({x:L.stairs.x,y:L.stairs.y,t:'boss',name:'Chapel Warden',hp:40,atk:4,def:1,phase:1,cool:0,enraged:false});
 
   // Player spawn
@@ -289,21 +441,34 @@ function pass(x,y){if(x<0||y<0||x>=W||y>=H)return false;const t=state.map[y*W+x]
 function actorAt(x,y){return state.mons.find(m=>m.x==x&&m.y==y)}
 function tryMove(m,dx,dy){const nx=m.x+dx,ny=m.y+dy;if(nx<0||ny<0||nx>=W||ny>=H)return 0;if(state.px==nx&&state.py==ny){attack(m,state);return 1}const t=state.map[ny*W+nx];if(t==TILE.wall)return 0;if(actorAt(nx,ny))return 0;nudge(m,dx,dy);m.x=nx;m.y=ny;return 1}
 
+// Stamina config
+const STAMINA = {
+  move: 1,
+  attackBase: 2,
+  extraReach: 1,
+  waitRegen: 2,
+  perTurnRegenNoAttack: 1,
+  perTurnRegenAlways: 1, // new: always regen 1 per turn baseline
+};
+
+// Track per-turn action for regen logic
+let actedThisTurn = { attacked:false };
+
 // Combat
 function attack(a,b){
-  if(rnd()<.08){ if(a===state) nmsg('Miss',palette().miss); return }
+  if(rnd()<.08){ if(a===state){ nmsg('Miss',palette().miss); } return }
   const baseAtk=(a.atk||0) + (a===state?(state.weapon.melee||0):0);
   const dmg=Math.max(1,(baseAtk + rni(0,1))-(b.def||0));
   b.hp=(b.hp||0)-dmg;
   if(a===state){
     floatAt(b.x,b.y,`-${dmg}`,'#f66'); nmsg(`Hit for ${dmg}`,'#f88');
+    actedThisTurn.attacked = true;
   }else if(b===state){
     state.hp=Math.max(0,state.hp); floatAt(state.px,state.py,`-${dmg}`,'#f66'); nmsg(`You -${dmg}`,'#f66');
     if(state.hp<=0){ onDeath(); return; }
   }
   if((b.hp||0)<=0){
     if(b===state) return;
-    // Souls on kill
     let gain=0;
     if(b.t==='slime') gain = 3;
     else if(b.t==='cultist') gain = 5;
@@ -318,9 +483,20 @@ function attack(a,b){
   }
 }
 
-// Swing (only way to damage)
+// Swing
 function reachAttack(){
-  const r=state.weapon.reach||1; let hits=0;
+  if(state.dead||state.won) return;
+  const r=state.weapon.reach||1;
+
+  // Calculate stamina cost
+  const cost = STAMINA.attackBase + Math.max(0, r-1) * STAMINA.extraReach;
+  if(state.sta < cost){
+    nmsg('Too exhausted to attack.','#aaa');
+    floatAt(state.px,state.py,'EXHAUSTED','#bbb');
+    return;
+  }
+
+  let hits=0;
   const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
   for(const [dx,dy] of dirs){
     for(let d=1; d<=r; d++){
@@ -331,9 +507,13 @@ function reachAttack(){
     }
   }
   if(!hits){ nmsg('Swing','#aaa') }
+
+  // Spend stamina and end turn
+  state.sta = Math.max(0, state.sta - cost);
+  endTurn();
 }
 
-// Items (simple)
+// Items
 function equipWeapon(w){
   if(w==='sword'){state.weapon={name:'Sword',melee:2,reach:1,range:0}}
   else if(w==='spear'){state.weapon={name:'Spear',melee:1,reach:2,range:0}}
@@ -348,7 +528,6 @@ function handleCellEnter(nx,ny){
     if(it.t=='weapon'){equipWeapon(it.w)}
     state.items=state.items.filter(a=>a!==it)
   }
-  // Bloodstain pickup
   if(state.bloodstain && state.bloodstain.x===nx && state.bloodstain.y===ny){
     if(state.bloodstain.souls>0){
       state.souls += state.bloodstain.souls;
@@ -359,10 +538,11 @@ function handleCellEnter(nx,ny){
     }
     state.bloodstain=null;
   }
-  // Campfire interactions
   const t = state.map[ny*W+nx];
   if(t===TILE.camp){
     restAtCamp(nx,ny);
+  }else{
+    setMenuOpen(false);
   }
   return true
 }
@@ -370,29 +550,78 @@ function handleCellEnter(nx,ny){
 // Input and movement
 function move(dx,dy){
   if(state.dead||state.won) return;
+  const moveCost = STAMINA.move;
+  if(dx!==0||dy!==0){
+    if(state.sta < moveCost){
+      nmsg('Too exhausted to move.','#aaa');
+      floatAt(state.px,state.py,'EXHAUSTED','#bbb');
+      return;
+    }
+  }
   const nx=state.px+dx,ny=state.py+dy;if(nx<0||ny<0||nx>=W||ny>=H)return
   const m=actorAt(nx,ny);
   if(m){
-    attack(m, state); // Walking onto enemy = you take damage
-    nudge(state,dx,dy);
-    dirtyFOV=true;
-    return endTurn();
+    return reachAttackTowards(dx,dy);
   }
   const t=state.map[ny*W+nx]; if(t==TILE.wall) return;
   if(!pass(nx,ny)) return;
   handleCellEnter(nx,ny);
   nudge(state,dx,dy); state.px=nx; state.py=ny;
+
+  if(dx!==0||dy!==0){
+    state.sta = Math.max(0, state.sta - moveCost);
+  }
+
   if(t==TILE.stair){ nmsg('You see stairs. Press > to descend.', palette().info) }
   dirtyFOV=true;
   endTurn();
 }
-function endTurn(){
-  // Enemies act
+
+// Directional 1-tile melee used when moving into enemy
+function reachAttackTowards(dx,dy){
+  if(state.dead||state.won) return;
+  const r=1;
+  const cost = STAMINA.attackBase + Math.max(0, r-1) * STAMINA.extraReach;
+  if(state.sta < cost){
+    nmsg('Too exhausted to attack.','#aaa');
+    floatAt(state.px,state.py,'EXHAUSTED','#bbb');
+    return;
+  }
+  const x=state.px+dx, y=state.py+dy;
+  const m=actorAt(x,y);
+  if(m){ attack(state,m); }
+  state.sta = Math.max(0, state.sta - cost);
+  nudge(state,dx,dy);
+  dirtyFOV=true;
+  endTurn();
+}
+
+function endTurn(playerWaited=false){
   for(const m of state.mons){
     if(m.t==='boss'){ bossAI(m); continue; }
     normalAI(m);
   }
+
+  // Stamina regeneration
+  let regen = STAMINA.perTurnRegenAlways; // always at least 1 per turn
+  if(playerWaited){
+    regen += STAMINA.waitRegen; // extra when waiting
+  }else if(!actedThisTurn.attacked){
+    regen += STAMINA.perTurnRegenNoAttack; // extra if you didn't attack this turn
+  }
+  regenSta(regen);
+
+  actedThisTurn.attacked = false;
+
   state.turn++; dirtyFOV=true;
+  updateMenuUI();
+}
+function regenSta(amount){
+  const before = state.sta;
+  state.sta = Math.min(state.stamax, state.sta + amount);
+  if(state.sta>before){
+    floatAt(state.px, state.py, '+'+(state.sta-before),'#9f9');
+  }
 }
 
 // Simple AI
@@ -447,27 +676,83 @@ function bossSlashLine(x,y,dx,dy,len){
   anims.bossFx.push({kind:'slash',x,y,dx,dy,len,t:8});
 }
 
-// Camps: rest/checkpoint + full respawn
+// Camps
 function restAtCamp(x,y){
-  // Set checkpoint and fully heal; gentle glow pulse
   state.checkpoint = {x,y,hpmax:state.hpmax, weapon:state.weapon.name};
   state.hp = state.hpmax;
   state.sta = state.stamax;
   nmsg('You rest at the campfire. HP and Stamina restored.', '#ffb347');
   floatAt(x,y,'REST','#ffb347');
-  campHint.style.display='block';
-  campHint.textContent='Camp set. You will respawn here if you die.';
   anims.campFx.push({x,y,t:24});
-
-  // Respawn all mobs on touching the campfire
-  respawnAllMobs();
+  for(let i=0;i<3;i++){anims.smoke.push({x,y,life:20+i*6})}
+  respawnAllMobs(true);
+  updateMenuUI();
+}
+function respawnAllMobs(fromCamp=false){
+  const base = buildLevel1();
+  const bossDead = !state.mons.some(m=>m.t==='boss');
+  state.mons = base.mons
+    .filter(m => !(bossDead && m.t==='boss'))
+    .map(m => ({...m}));
+  clearNudges();
+  dirtyFOV = true;
+  nmsg('You feel the world rekindle... foes return.', '#ff9');
 }
 
-// Respawn mobs: rebuild default mob list (boss, slimes, cultist) at their initial positions
-function respawnAllMobs(){
-  const base = buildLevel1();
-  state.mons = base.mons.map(m => ({...m}));
-  nmsg('You feel the world rekindle... foes return.', '#ff9');
+// Render helpers: chapel floor tiling
+function drawFloorCell(x,y,baseAlpha){
+  const pal=palette();
+  ctx.globalAlpha=baseAlpha;
+  ctx.fillStyle=pal.floor;
+  ctx.fillRect(x*T,y*T,T,T);
+  const patAlpha = Math.max(0, Math.min(1, baseAlpha*0.08));
+  if(patAlpha>0){
+    ctx.globalAlpha = patAlpha;
+    ctx.fillStyle = '#9fb3d4';
+    for(let yy=0;yy<T;yy+=3){ctx.fillRect(x*T, y*T+yy, T, 1)}
+    for(let xx=0;xx<T;xx+=3){ctx.fillRect(x*T+xx, y*T, 1, T)}
+  }
+  const ribAlpha = Math.max(0, Math.min(1, baseAlpha*0.06));
+  if(ribAlpha>0){
+    ctx.globalAlpha = ribAlpha;
+    ctx.strokeStyle = '#6d7a95';
+    if(((x*13+y*7+((seedv>>>0)&255))%11)==0){
+      ctx.beginPath();
+      ctx.moveTo(x*T+2, y*T+T-2);
+      ctx.lineTo(x*T+T-3, y*T+2);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha=1;
+}
+function drawWallCell(x,y,baseAlpha){
+  const pal=palette();
+  ctx.globalAlpha=baseAlpha;ctx.fillStyle=pal.wall;ctx.fillRect(x*T,y*T,T,T);
+  ctx.fillStyle=pal.bevelLight; ctx.fillRect(x*T,y*T,T,1); ctx.fillRect(x*T,y*T,1,T);
+  ctx.fillStyle=pal.bevelDark; ctx.fillRect(x*T,y*T+T-1,T,1); ctx.fillRect(x*T+T-1,y*T,1,T);
+  const ribAlpha = Math.max(0, Math.min(1, baseAlpha*0.15));
+  if(ribAlpha>0){
+    ctx.globalAlpha=ribAlpha; ctx.fillStyle='#98a7c7';
+    const rib=((x+y)&1)==0;
+    if(rib){ctx.fillRect(x*T+Math.floor(T/2)-1, y*T+1, 2, T-2)}
+  }
+  ctx.globalAlpha=1;
+}
+
+// Ensure a safe bloodstain position
+function findSafeBloodstainSpot(px,py){
+  if(!actorAt(px,py) && pass(px,py)) return {x:px,y:py};
+  const maxR=3;
+  for(let r=1;r<=maxR;r++){
+    for(let dy=-r;dy<=r;dy++){
+      for(let dx=-r;dx<=r;dx++){
+        const x=px+dx, y=py+dy;
+        if(x<0||y<0||x>=W||y>=H) continue;
+        if(!actorAt(x,y) && pass(x,y)) return {x,y};
+      }
+    }
+  }
+  return {x:px,y:py};
 }
 
 // Render
@@ -479,28 +764,45 @@ function render(){
   ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,can.width,can.height);
   const pal=palette();
 
-  // tiles
   for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){
     const mx=x+ox,my=y+oy,ti=state.map[my*W+mx];
     const seen = floorSeen[my*W+mx] ? 1 : 0;
     const vis = visible[my*W+mx] ? 1 : 0;
     const baseAlpha = (!fogEnabled) ? 1 : (vis?1:(seen?pal.tileSeen:0));
-    const floorCol=highContrast?pal.floorHC:pal.floor;
-    const wallCol=pal.wall;
 
     if(ti==TILE.wall){
-      ctx.globalAlpha=baseAlpha;ctx.fillStyle=wallCol;ctx.fillRect(x*T,y*T,T,T);
-      ctx.fillStyle='#000';ctx.globalAlpha=baseAlpha*0.06;for(let yy=0;yy<T;yy+=2){for(let xx=(yy&2)?1:0;xx<T;xx+=2){ctx.fillRect(x*T+xx,y*T+yy,1,1)}}ctx.globalAlpha=baseAlpha;
-      const sN=my>0&&state.map[(my-1)*W+mx]!=TILE.wall, sS=my<H-1&&state.map[(my+1)*W+mx]!=TILE.wall, sW=mx>0&&state.map[my*W+mx-1]!=TILE.wall, sE=mx<W-1&&state.map[my*W+mx+1]!=TILE.wall;
-      ctx.fillStyle=pal.bevelLight; if(sN)ctx.fillRect(x*T,y*T,T,1); if(sW)ctx.fillRect(x*T,y*T,1,T);
-      ctx.fillStyle=pal.bevelDark; if(sS)ctx.fillRect(x*T,y*T+T-1,T,1); if(sE)ctx.fillRect(x*T+T-1,y*T,1,T);
-      ctx.globalAlpha=1;
+      drawWallCell(x,y,baseAlpha);
     }else{
-      ctx.globalAlpha=baseAlpha;ctx.fillStyle=floorCol;ctx.fillRect(x*T,y*T,T,T);
+      drawFloorCell(x,y,baseAlpha);
       const n=my>0&&state.map[(my-1)*W+mx]==TILE.wall, s=my<H-1&&state.map[(my+1)*W+mx]==TILE.wall, w=mx>0&&state.map[my*W+mx-1]==TILE.wall, e=mx<W-1&&state.map[my*W+mx+1]==TILE.wall;
-      if(n||s||w||e){const sh=highContrast?pal.shadowHC:pal.shadow;ctx.fillStyle=sh;ctx.globalAlpha=baseAlpha*0.55;if(n)ctx.fillRect(x*T,y*T,T,2);if(s)ctx.fillRect(x*T,y*T+T-2,T,2);if(w)ctx.fillRect(x*T,y*T,2,T);if(e)ctx.fillRect(x*T+T-2,y*T,2,T);ctx.globalAlpha=baseAlpha*0.3;if(n)ctx.fillRect(x*T,y*T+2,T,1);if(s)ctx.fillRect(x*T,y*T+T-3,T,1);if(w)ctx.fillRect(x*T+2,y*T,1,T);if(e)ctx.fillRect(x*T+T-3,y*T,1,T);ctx.globalAlpha=baseAlpha}
+      if(n||s||w||e){
+        const sh=highContrast?pal.shadowHC:pal.shadow;
+        const sh1 = Math.max(0, Math.min(1, baseAlpha*0.55));
+        const sh2 = Math.max(0, Math.min(1, baseAlpha*0.28));
+        if(sh1>0){
+          ctx.fillStyle=sh;ctx.globalAlpha=sh1;
+          if(n)ctx.fillRect(x*T,y*T,T,2);
+          if(s)ctx.fillRect(x*T,y*T+T-2,T,2);
+          if(w)ctx.fillRect(x*T,y*T,2,T);
+          if(e)ctx.fillRect(x*T+T-2,y*T,2,T);
+        }
+        if(sh2>0){
+          ctx.globalAlpha=sh2;
+          if(n)ctx.fillRect(x*T,y*T+2,T,1);
+          if(s)ctx.fillRect(x*T,y*T+T-3,T,1);
+          if(w)ctx.fillRect(x*T+2,y*T,1,T);
+          if(e)ctx.fillRect(x*T+T-3,y*T,1,T);
+        }
+        ctx.globalAlpha=1;
+      }
     }
-    if(ti==TILE.stair){ctx.drawImage(spr.stair,0,0,8,8,x*T,y*T,T,T)}
+    if(ti==TILE.stair){
+      const pulse = (anims.shimmerT%60)/60;
+      ctx.save();
+      ctx.globalAlpha = (!fogEnabled||vis) ? (0.85 + 0.15*Math.sin(pulse*6.283)) : Math.max(0.5, pal.tileSeen);
+      ctx.drawImage(spr.stair,0,0,16,16,x*T,y*T,T,T);
+      ctx.restore();
+    }
     if(ti==TILE.camp){
       if(!fogEnabled || vis){
         ctx.globalAlpha = 1;
@@ -509,26 +811,71 @@ function render(){
         ctx.globalAlpha = 0.5;
         ctx.drawImage(spr.camp,0,0,8,8,x*T,y*T,T,T);
       }
+      ctx.globalAlpha=1;
     }
+
+    if((!fogEnabled && true) || seen){
+      const d = deco[my*W+mx];
+      if(d===DEC.pew){
+        ctx.globalAlpha = (visible[my*W+mx]?0.85:0.5);
+        ctx.fillStyle = pal.pew;
+        ctx.fillRect(x*T+1, y*T+T-3, T-2, 2);
+        ctx.globalAlpha=1;
+      }else if(d===DEC.banner){
+        ctx.globalAlpha = (visible[my*W+mx]?0.9:0.6);
+        ctx.fillStyle = '#5b6bd4';
+        ctx.fillRect(x*T+2, y*T+1, T-4, T-4);
+        ctx.globalAlpha = (visible[my*W+mx]?1:0.7);
+        ctx.fillStyle = '#c870ff';
+        ctx.fillRect(x*T+3, y*T+3, T-6, 3);
+        ctx.globalAlpha=1;
+      }else if(d===DEC.altar){
+        ctx.globalAlpha = (visible[my*W+mx]?0.95:0.6);
+        ctx.fillStyle = palette().altar;
+        ctx.fillRect(x*T+1, y*T+2, T-2, T-4);
+        ctx.fillStyle = '#c7a26b';
+        ctx.fillRect(x*T+3, y*T+3, T-6, 2);
+        ctx.globalAlpha=1;
+      }else if(d===DEC.glass){
+        const t = (anims.pulse%120)/120;
+        ctx.save();
+        ctx.globalAlpha = ((visible[my*W+mx]?0.14:0.08) + 0.06*Math.sin(t*6.283));
+        const grad = ctx.createLinearGradient(x*T, y*T, x*T-6*T, y*T+8*T);
+        grad.addColorStop(0,'rgba(90,120,220,1)');
+        grad.addColorStop(0.5,'rgba(210,80,180,0.9)');
+        grad.addColorStop(1,'rgba(100,220,200,0.6)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(x*T+T/2, y*T);
+        ctx.lineTo(x*T-5*T, y*T+8*T);
+        ctx.lineTo(x*T-6*T, y*T+8*T);
+        ctx.lineTo(x*T+T/2-1, y*T);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha=1;
   }
 
-  // bloodstain draw
+  // bloodstain
   if(state.bloodstain){
-    const vis = !fogEnabled || visible[state.bloodstain.y*W+state.bloodstain.x];
+    const vis = !fogEnabled || visible[state.bloodstain.y*W+state.bloodstain.x] || floorSeen[state.bloodstain.y*W+state.bloodstain.x];
     if(vis){
       const bx=(state.bloodstain.x-ox)*T, by=(state.bloodstain.y-oy)*T;
-      ctx.globalAlpha=1;
-      ctx.drawImage(spr.bloodstain,0,0,8,8,bx,by,T,T);
-      ctx.globalAlpha=0.6;
-      ctx.fillStyle='#ff5566';
-      ctx.font=`${Math.max(8,Math.floor(T*.6))}px monospace`;
-      ctx.textAlign='center';
-      ctx.fillText(state.bloodstain.souls.toString(), bx+T/2, by+T-2);
-      ctx.globalAlpha=1;
+      if(bx>-T && by>-T && bx<can.width && by<can.height){
+        ctx.globalAlpha=0.9;
+        ctx.drawImage(spr.bloodstain,0,0,8,8,bx,by,T,T);
+        ctx.globalAlpha=0.75;
+        ctx.fillStyle='#ff5566';
+        ctx.font=`${Math.max(8,Math.floor(T*.6))}px monospace`;
+        ctx.textAlign='center';
+        ctx.fillText(state.bloodstain.souls.toString(), bx+T/2, by+T-2);
+        ctx.globalAlpha=1;
+      }
     }
   }
 
-  // camp glow FX pulse
   for(const fx of anims.campFx){
     if(fx.t<=0) continue;
     const phase = (24 - fx.t) / 24;
@@ -544,6 +891,16 @@ function render(){
     }
     ctx.restore();
   }
+  for(const s of anims.smoke){
+    if(s.life<=0) continue;
+    const age = 20 - Math.min(20,s.life);
+    const sx=(s.x-ox)*T + T/2 + Math.sin((20-s.life)*0.2)*2;
+    const sy=(s.y-oy)*T + T/2 - age*0.6;
+    ctx.globalAlpha = Math.max(0, s.life/26)*0.35;
+    ctx.fillStyle = 'rgba(220,210,200,1)';
+    ctx.beginPath(); ctx.arc(sx,sy, Math.max(1,T*0.25), 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha=1;
+  }
 
   // items
   for(const it of state.items){
@@ -555,9 +912,11 @@ function render(){
   }
 
   // enemies
+  const bob = Math.sin((anims.idle%60)/60*6.283)*0.15;
   for(const m of state.mons){
     if(fogEnabled && !visible[m.y*W+m.x]) continue;
     let px=(m.x-ox)*T,py=(m.y-oy)*T;const nudgeA=anims.move.find(mm=>mm.e===m);if(nudgeA){px+=nudgeA.dx*T*(nudgeA.t/2);py+=nudgeA.dy*T*(nudgeA.t/2)}
+    py += bob;
     if(m.t==='boss'){
       ctx.drawImage(spr.boss16,0,0,16,16,px-T/2,py-T/2,T*2,T*2);
     }else{
@@ -566,7 +925,6 @@ function render(){
     }
   }
 
-  // boss FX
   for(const fx of anims.bossFx){
     if(fx.t<=0) continue;
     const alpha = fx.t / 14;
@@ -598,9 +956,18 @@ function render(){
 
   // player
   let ppx=(state.px-ox)*T,ppy=(state.py-oy)*T;const pnudge=anims.move.find(mm=>mm.e===state);if(pnudge){ppx+=pnudge.dx*T*(pnudge.t/2);ppy+=pnudge.dy*T*(pnudge.t/2)}
-  ctx.drawImage(spr.player,0,0,8,8,ppx,ppy,T,T);
+  ctx.save();
+  const auraBase = state.boons.light ? 0.24 : 0.16;
+  ctx.globalAlpha = auraBase + 0.06*Math.sin((anims.pulse%60)/60*6.283);
+  const auraRad = state.boons.light ? 2 : 1;
+  for(let dy=-auraRad;dy<=auraRad;dy++)for(let dx=-auraRad;dx<=auraRad;dx++){
+    if(Math.abs(dx)+Math.abs(dy)<=auraRad){
+      ctx.drawImage(spr.ember,0,0,8,8,ppx+dx*T,ppy+dy*T,T,T);
+    }
+  }
+  ctx.restore();
+  ctx.drawImage(spr.player,0,0,16,16,ppx-4,ppy-6,T+8,T+8);
 
-  // overlays
   if(overlays){
     const r=state.weapon.reach||1;
     ctx.globalAlpha=.18;ctx.fillStyle=palette().overlay;
@@ -613,11 +980,9 @@ function render(){
     ctx.globalAlpha=1;
   }
 
-  // trails & floaters
   for(const tr of anims.trails){if(tr.t>0){ctx.globalAlpha=tr.t/6;ctx.strokeStyle='#ddd';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo((tr.x0-ox+.5)*T,(tr.y0-oy+.5)*T);ctx.lineTo((tr.x1-ox+.5)*T,(tr.y1-oy+.5)*T);ctx.stroke();ctx.globalAlpha=1}}
   for(const f of anims.floaters){if(f.t>0){const ax=(f.x-ox)*T+T/2,ay=(f.y-oy)*T+T/2 - (12-f.t);ctx.globalAlpha=f.t/12;ctx.fillStyle=f.c;ctx.font=`${Math.max(8,Math.floor(T*.7))}px monospace`;ctx.textAlign='center';ctx.fillText(f.text,ax,ay);ctx.globalAlpha=1}}
 
-  // Fog pass
   if(fogEnabled){
     const palFog=palette();
     for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){
@@ -634,22 +999,42 @@ function render(){
 
 // HUD update
 function updateHud(){
-  vhp.textContent=Math.max(0,state.hp); vhpmax.textContent=state.hpmax;
-  vsta.textContent=Math.max(0,Math.floor(state.sta)); vstamax.textContent=state.stamax;
-  vsouls.textContent=state.souls; varrows.textContent=state.arrows; vwpn.textContent=state.weapon.name;
-  vseed.textContent=seedv>>>0;
+  const hp = Math.max(0,state.hp), hpMax = Math.max(1,state.hpmax);
+  const st = Math.max(0,Math.floor(state.sta)), stMax = Math.max(1,state.stamax);
+  hpFill.style.width = Math.max(0, Math.min(100, Math.round(hp/hpMax*100))) + '%';
+  staFill.style.width = Math.max(0, Math.min(100, Math.round(st/stMax*100))) + '%';
+  hpText.textContent = hp + '/' + hpMax;
+  staText.textContent = st + '/' + stMax;
+  updateMenuUI();
 }
+
+// Store logic
+function spend(cost){
+  if(state.souls>=cost){ state.souls-=cost; updateHud(); return true }
+  nmsg('Not enough souls.','#aaa'); return false
+}
+const prices={hp:20,sta:18,sharp:25,sword:30,spear:30,light:15};
 
 // Input
 function onKey(e){
   if(modalOverlay.classList.contains('show'))return
   const k=e.key;
-  const handled = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D','>','.', ' ','r','R','N','H','C','M','V','1','2','3'].includes(k);
+  const handled = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D','>','.', ' ','r','R','N','H','C','M','V','1','2','3','l','L','Escape'].includes(k);
   if(handled) e.preventDefault();
 
-  // If death overlay is up, any key confirms respawn if a checkpoint exists
   if(state.dead && deathScr.classList.contains('show')){
     confirmDeathContinue();
+    return;
+  }
+
+  if(k=='Escape'){ setMenuOpen(false); return; }
+
+  if(k=='l' || k=='L'){
+    if(canUseCampMenu()){
+      setMenuOpen(!campMenuOverlay.classList.contains('show'));
+    }else{
+      nmsg('You must stand on a campfire to open the menu.','#aaa');
+    }
     return;
   }
 
@@ -657,8 +1042,8 @@ function onKey(e){
   else if(k=='ArrowDown'||k=='s'||k=='S')move(0,1);
   else if(k=='ArrowLeft'||k=='a'||k=='A')move(-1,0);
   else if(k=='ArrowRight'||k=='d'||k=='D')move(1,0);
-  else if(k=='.'){endTurn()}
-  else if(k==' '){ reachAttack(); endTurn() }
+  else if(k=='.'){ endTurn(true) }
+  else if(k==' '){ reachAttack(); }
   else if(k=='>'){ tryDescend() }
   else if(k=='H'){highContrast=!highContrast;nmsg(highContrast?'High contrast on':'High contrast off',palette().info);render()}
   else if(k=='C'){colorblind=!colorblind;nmsg(colorblind?'Colorblind palette on':'Colorblind palette off',palette().info);render()}
@@ -690,15 +1075,17 @@ function tick(){
   for(let i=anims.floaters.length-1;i>=0;i--){const f=anims.floaters[i];f.t--;if(f.t<=0)anims.floaters.splice(i,1)}
   for(let i=anims.bossFx.length-1;i>=0;i--){const f=anims.bossFx[i];f.t--;if(f.t<=0)anims.bossFx.splice(i,1)}
   for(let i=anims.campFx.length-1;i>=0;i--){const f=anims.campFx[i];f.t--;if(f.t<=0)anims.campFx.splice(i,1)}
-  anims.pulse++
+  for(let i=anims.smoke.length-1;i>=0;i--){const s=anims.smoke[i];s.life--;if(s.life<=0)anims.smoke.splice(i,1)}
+  anims.pulse++; anims.shimmerT++; anims.idle++;
   render(); requestAnimationFrame(tick)
 }
 function resize(){
   const wrapEl = document.getElementById('wrap')
   const bottomH = document.getElementById('bottombar').offsetHeight
   const isNarrow = window.matchMedia('(max-width:900px)').matches
+  const topH = document.getElementById('topbar').offsetHeight
   let availW = wrapEl.clientWidth - 6
-  let availH = (isNarrow ? (window.innerHeight - document.getElementById('panel').offsetHeight - bottomH) : wrapEl.clientHeight) - 6
+  let availH = (isNarrow ? (window.innerHeight - document.getElementById('panel').offsetHeight - bottomH - topH) : (wrapEl.clientHeight)) - 6
   availW = Math.max(80, availW)
   availH = Math.max(80, availH)
   let s = Math.floor(Math.min(availW / W, availH / H))
@@ -707,7 +1094,6 @@ function resize(){
   can.width = W * T; can.height = H * T
   render()
 }
-const panelRO = new ResizeObserver(()=>resize());
 
 // Game setup
 let lastSize=2;
@@ -721,7 +1107,8 @@ function newGame(size=2,seedIn){
     hp:14,hpmax:14,atk:2,def:0,sta:8,stamax:8,
     souls:0,weapon:{name:'Dagger',melee:1,reach:1,range:0},arrows:0,turn:0,dead:false,won:false,
     checkpoint: {x:g.px, y:g.py, hpmax:14, weapon:'Dagger'},
-    bloodstain:null
+    bloodstain:null,
+    boons:{light:false}
   };
   messages=[];nmsg('Level 1: The Fallen Chapel','#9f9');
 
@@ -729,42 +1116,38 @@ function newGame(size=2,seedIn){
 
   setLogVisible(!window.matchMedia('(max-width:900px)').matches);
 
-  const savedCtrl = safeGet('ds_ctrl_collapse','open') || 'open';
-  setControlsCollapsed(savedCtrl==='closed');
-
   hideOverlays();
+  setMenuOpen(false);
   dirtyFOV=true;
+  actedThisTurn.attacked=false;
   resize();render()
 }
 
 // Death/Win
 function onDeath(){
   if(state.dead) return;
-  // Leave bloodstain with carried souls
+  let spot = findSafeBloodstainSpot(state.px, state.py);
   if(state.souls>0){
-    state.bloodstain = {x:state.px, y:state.py, souls:state.souls};
+    state.bloodstain = {x:spot.x, y:spot.y, souls:state.souls};
     nmsg(`You leave a bloodstain containing ${state.souls} souls.`, '#f77');
     state.souls = 0;
   }else{
-    state.bloodstain = {x:state.px, y:state.py, souls:0};
+    state.bloodstain = {x:spot.x, y:spot.y, souls:0};
   }
-
-  // Show YOU DIED first; rekindle occurs after click/keypress if checkpoint exists
   state.dead = true;
   deathScr.classList.add('show');
+  setMenuOpen(false);
   nmsg('YOU DIED','#f55');
 }
 function confirmDeathContinue(){
   if(!state.dead) return;
   deathScr.classList.remove('show');
-  // If checkpoint exists, rekindle there; otherwise keep death state
   if(state.checkpoint && !state.won){
     nmsg('The campfire rekindles you.','#ffb347');
     state.hp = state.hpmax;
     state.sta = state.stamax;
     state.px = state.checkpoint.x;
     state.py = state.checkpoint.y;
-    // Respawn all mobs on rekindle (same as touching camp)
     respawnAllMobs();
     hideOverlays();
     state.dead=false;
@@ -774,21 +1157,12 @@ function confirmDeathContinue(){
 function onWin(){
   if(state.won) return;
   state.won=true;
+  setMenuOpen(false);
   winScr.classList.add('show');
 }
 
-// Log/controls collapse
+// Log collapse
 function setLogVisible(flag){logVisible=flag;logWrap.classList.toggle('hide',!logVisible);logToggle.textContent=logVisible?'Collapse':'Expand';resize()}
-function setControlsCollapsed(collapsed){
-  controlsBody.style.display = collapsed?'none':'block';
-  controlsToggle.textContent = collapsed?'Expand':'Collapse';
-  controlsToggle.setAttribute('aria-expanded', String(!collapsed));
-  safeSet('ds_ctrl_collapse', collapsed?'closed':'open');
-}
-controlsToggle.addEventListener('click',()=>{
-  const collapsed = controlsBody.style.display!=='none'?true:false;
-  setControlsCollapsed(collapsed);
-});
 logToggle.onclick=()=>{setLogVisible(!logVisible)};
 newBtn.onclick=()=>{hideOverlays();newGame(lastSize||2)};
 
@@ -798,8 +1172,10 @@ modalClose.onclick=()=>modalOverlay.classList.remove('show');
 // Allow click anywhere on death overlay to continue
 deathScr.addEventListener('click', confirmDeathContinue);
 
+// Single ResizeObserver instance
 const panel = document.getElementById('panel');
-panelRO.observe(panel);
+const panelResizeObserver = new ResizeObserver(()=>resize());
+panelResizeObserver.observe(panel);
 
 // Init
 newGame();
