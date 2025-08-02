@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dotsouls+ — Level 1: The Fallen Chapel</title>
+<style>
+  :root{
+    --bg:#0a0a0a;--fg:#ddd;--panel:#0d0d0d;--line:#222;--btn:#222;--btn2:#333;
+    --good:#6df;--warn:#ff6;--bad:#f77;--accent:#c6f;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Arial,sans-serif}
+  #ui{position:fixed;inset:0;display:grid;grid-template-columns:1fr minmax(300px,28vw);grid-template-rows:1fr;gap:0}
+  #left{display:grid;grid-template-rows:1fr auto;min-width:0;min-height:0;overflow:hidden}
+  #wrap{display:grid;align-items:center;justify-items:start;min-width:0;min-height:0;padding-right:14px}
+  #c{image-rendering:pixelated;border:2px solid #333;background:#000;max-width:100%;max-height:100%}
+  #bottombar{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-top:1px solid var(--line);background:#0c0c0c}
+  #bottombar .hint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem;opacity:.9}
+  button{background:var(--btn);color:var(--fg);border:2px solid #444;border-radius:8px;padding:.35rem .6rem;cursor:pointer;font-size:.9rem}
+  button:hover{background:var(--btn2)}
+  kbd{background:#222;border:1px solid #444;border-radius:4px;padding:.05rem .3rem;font-size:.85rem}
+  #panel{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-width:300px;max-width:440px;overflow:auto}
+  .section{padding:.7rem .8rem;border-bottom:1px solid var(--line)}
+  .section h2{margin:.1rem 0 .5rem;font-size:1.05rem;color:#eee;display:flex;align-items:center;justify-content:space-between}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem;font-size:.95rem}
+  .label{opacity:.75}
+  .value{color:#eee}
+  .note{opacity:.85}
+  .small{font-size:.92rem}
+  #arrowsHint{font-family:monospace;font-size:1.1rem;letter-spacing:.15rem}
+  #logWrap{overflow:hidden;max-height:12rem;transition:max-height .2s}
+  #logWrap.hide{max-height:0}
+  #msg{padding:.45rem .1rem .25rem .1rem;font-size:.95rem;white-space:normal;line-height:1.35;word-break:break-word}
+  .bad{color:var(--bad)} .dim{opacity:.7}
+  .inlineCanvas{image-rendering:pixelated}
+  .collapseBody.hide{display:none}
+  .collapseBtn{font-size:.8rem;border-radius:999px;padding:.15rem .5rem}
+  #modalOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:6}
+  #modalOverlay.show{display:grid}
+  .modalCard{background:#0b0b0b;border:1px solid #333;border-radius:12px;min-width:260px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+  .modalCard h3{margin:.2rem 0 .7rem}
+  .row{display:flex;gap:.5rem;align-items:center;justify-content:flex-end;margin-top:.8rem}
+  #death{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7;cursor:pointer}
+  #death.show{display:flex}
+  #death .text{font-size:10vw;max-font-size:140px;color:#b00;text-shadow:0 0 18px rgba(255,0,0,.25);font-weight:900;letter-spacing:.15em}
+  #win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7}
+  #win.show{display:flex}
+  #win .text{font-size:7vw;color:#8f8;text-shadow:0 0 18px rgba(127,255,200,.25);font-weight:800;letter-spacing:.08em}
+  @media (max-width:900px){
+    #ui{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+    #panel{grid-row:1;border-left:none;border-bottom:1px solid var(--line);max-width:none}
+    #left{grid-row:2}
+    #bottombar{grid-row:3}
+    #logWrap{max-height:0}
+    #death .text{font-size:16vw}
+    #win .text{font-size:12vw}
+  }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="left">
+    <div id="wrap"><canvas id="c" width="256" height="256" role="img" aria-label="Level 1: The Fallen Chapel"></canvas></div>
+    <div id="bottombar">
+      <div class="hint">Move Arrows/WASD • Wait . • Swing Space • Descend &gt; • Restart R • New N • Size 1/2/3 • High Contrast H • Colorblind C • Overlays V • Toggle Log M</div>
+      <button id="new">Reset Level 1</button>
+    </div>
+  </div>
+  <div id="panel">
+    <div id="status" class="section">
+      <h2> Level 1 — The Fallen Chapel </h2>
+      <div class="small dim">Face the first true threat. Only Space swings deal damage. Walking into enemies hurts you.</div>
+      <div class="grid" style="margin-top:.6rem">
+        <div><span class="label">HP:</span> <span class="value" id="v_hp">0</span>/<span class="value" id="v_hpmax">0</span></div>
+        <div><span class="label">Stamina:</span> <span class="value" id="v_sta">0</span>/<span class="value" id="v_stamax">0</span></div>
+        <div><span class="label">Souls:</span> <span class="value" id="v_souls">0</span></div>
+        <div><span class="label">Arrows:</span> <span class="value" id="v_arrows">0</span></div>
+        <div><span class="label">Weapon:</span> <span class="value" id="v_wpn">Dagger</span></div>
+        <div><span class="label">Seed:</span> <span class="value" id="v_seed"></span></div>
+      </div>
+      <div id="campHint" class="note" style="margin-top:.5rem;display:none;color:var(--good)"></div>
+    </div>
+    <div id="controlsHow" class="section">
+      <div class="collapseHeader">
+        <h2 style="margin:0">Controls</h2>
+        <button id="controlsToggle" class="collapseBtn" aria-expanded="true" aria-controls="controlsBody">Collapse</button>
+      </div>
+      <div id="controlsBody" class="collapseContent">
+        <div class="small">
+          Move with WASD/Arrows. Space swings your weapon (the only way to damage enemies). Walking onto an enemy tile does NOT attack; instead, you take damage. Use . to wait a turn. Descend the staircase (>) to win this level.
+        </div>
+        <div class="small dim" style="margin-top:.5rem">
+          Tip: The boss has special moves and a larger sprite. Watch for patterns.
+        </div>
+      </div>
+    </div>
+    <div id="events" class="section" style="border-bottom:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem">
+        <h2 style="margin:0">Events</h2>
+        <button id="logToggle">Collapse</button>
+      </div>
+      <div id="logWrap"><div id="msg"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="modalOverlay" aria-hidden="true">
+  <div class="modalCard" role="dialog" aria-modal="true">
+    <h3>Modal</h3>
+    <p>This space is reserved for future L1 interactions.</p>
+    <div class="row"><button id="modalClose">Close</button></div>
+  </div>
+</div>
+
+<div id="death"><div class="text">YOU DIED</div></div>
+<div id="win"><div class="text">VICTORY</div></div>
+
+<script type="module">
+/*
+  Fixes:
+   - Death flow now shows YOU DIED overlay first. After user click/keypress, we perform campfire rekindle (respawn at checkpoint) if available.
+   - Grant souls on each mob kill (slime/cultist small amounts, boss larger). Souls only granted on kill, not on hit.
+*/
+
+let W=48,H=32,T=8;
+const can=document.getElementById('c'),ctx=can.getContext('2d');
+const $=id=>document.getElementById(id);
+const vhp=$('v_hp'),vhpmax=$('v_hpmax'),vsta=$('v_sta'),vstamax=$('v_stamax'),
+      vsouls=$('v_souls'),varrows=$('v_arrows'),vseed=$('v_seed'),vwpn=$('v_wpn'),
+      campHint=$('campHint');
+const msg=$('msg'), newBtn=$('new'), logWrap=$('logWrap'), logToggle=$('logToggle');
+const controlsToggle=$('controlsToggle'), controlsBody=$('controlsBody');
+const deathScr=$('death'), winScr=$('win');
+const modalOverlay=$('modalOverlay'), modalClose=$('modalClose');
+
+function safeGet(k, def=null){try{const v=window.localStorage.getItem(k);return v===null?def:v}catch(e){return def}}
+function safeSet(k,v){try{window.localStorage.setItem(k,v)}catch(e){}}
+
+// RNG
+let seedv=Date.now()|0;
+function rnd(){seedv=(seedv*1664525+1013904223)|0;return (seedv>>>0)/4294967296}
+function rni(a,b){return a+Math.floor(rnd()*(b-a+1))}
+
+// Sprite helpers
+function makeSpriteN(sz,fn){
+  const s=document.createElement('canvas');s.width=s.height=sz;
+  const g=s.getContext('2d'),img=g.createImageData(sz,sz);
+  for(let y=0;y<sz;y++)for(let x=0;x<sz;x++){
+    const col=fn(x,y);const r=col[0],gC=col[1],b=col[2],a=(col.length>3?col[3]:255);
+    const i=(y*sz+x)*4;img.data[i]=r;img.data[i+1]=gC;img.data[i+2]=b;img.data[i+3]=a;
+  }
+  g.putImageData(img,0,0);return s;
+}
+const makeSprite=(fn)=>makeSpriteN(8,fn);
+const makeSprite16=(fn)=>makeSpriteN(16,fn);
+
+// Sprites (procedural)
+const spr={
+  player:makeSprite((x,y)=>[200-((x+y)%3)*20,230-((x*y)%3)*20,245]),
+  slime:makeSprite((x,y)=>[60,210-((x+y)%3)*25,80]),
+  cultist:makeSprite((x,y)=>[150-((x+y)%2)*25,60,160]),
+  stair:makeSprite((x,y)=>[230,230,180-((x^y)&1)*60]),
+  souls:makeSprite((x,y)=>[245-((x+y)&1)*20,220,40]),
+  dagger:makeSprite((x,y)=>[200-((x+y)%2)*30,200,200]),
+  sword:makeSprite((x,y)=>[230-((x+y)%2)*15,230-((x+y)%2)*15,250]),
+  spear:makeSprite((x,y)=>[210,210,230]),
+  boss16:makeSprite16((x,y)=>{
+    const cx=8,cy=8;const d=Math.hypot(x-cx,y-cy);
+    let r=90,g=60,b=140,a=255;
+    if(d<6){r=140+((x*y)&7);g=80+((x+y)&7);b=200-((x+y)&5)}
+    if((x>6&&x<10&&y>2&&y<4)||(x>6&&x<10&&y>12&&y<14)) { r=220;g=50;b=60 }
+    if((x==0||y==0||x==15||y==15)) a=0;
+    return [r,g,b,a];
+  }),
+  bossShock:makeSprite16((x,y)=>{const s=(x^y)&1;return [255,200,40, s?220:60]}),
+  camp:makeSprite((x,y)=>{
+    const cx=3.5, cy=3.5, d=Math.hypot(x-cx,y-cy);
+    let r=255, g=160, b=60, a=255;
+    if(d>2.6){ r=200; g=90; b=40; a=220 }
+    if(d>3.2){ r=120; g=70; b=40; a=160 }
+    if(((x+y)&1)==0) g+=20;
+    return [r,g,b,a];
+  }),
+  bloodstain:makeSprite((x,y)=>{
+    const cx=3.5,cy=3.5,d=Math.hypot(x-cx,y-cy);
+    let r=120+((x+y)&3)*10,g=10,b=20,a=220;
+    if(d<2.5){r=180;g=20;b=30;a=240}
+    if(((x^y)&1)==0) r+=10;
+    return [r,g,b,a];
+  }),
+};
+
+// Tiles
+const TILE={floor:0,wall:1,stair:3,camp:5};
+
+// Palette, FOV, etc.
+let highContrast=false,colorblind=false,overlays=true,fogEnabled=true;
+function hex(r,g,b){return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+function shade(hexColor,delta){const s=hexColor.replace('#','');const n=parseInt(s,16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;function clamp(x){return Math.max(0,Math.min(255,x))}r=clamp(r+delta);g=clamp(g+delta);b=clamp(b+delta);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+function palette(){
+  const baseFloor='#13161b', baseWall='#27313f';
+  const w=(h=>{const s=h.replace('#','');const n=parseInt(s,16);return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}})(baseWall);
+  const f=(h=>{const s=h.replace('#','');const n=parseInt(s,16);return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}})(baseFloor);
+  const bevelLight=hex((w.r*0.85+255*0.15)|0,(w.g*0.85+255*0.15)|0,(w.b*0.85+255*0.15)|0);
+  const bevelDark=hex((w.r*.55)|0,(w.g*.55)|0,(w.b*.55)|0);
+  const shadow=hex((f.r*.6)|0,(f.g*.6)|0,(f.b*.6)|0);
+  const shadowHC=hex((f.r*.45)|0,(f.g*.45)|0,(f.b*.45)|0);
+  return {
+    wall:baseWall,floor:highContrast?shade(baseFloor,-10):baseFloor,
+    floorHC:shade(baseFloor,-12),tileSeen:.28,bevelLight,bevelDark,shadow,shadowHC,
+    hitFill: colorblind?'rgba(0,255,255,.35)':'rgba(255,64,64,.45)',
+    overlay: colorblind?'#0ff':'#fff',
+    miss:'#aaa', gold:'#ff6', info:'#6df',
+    fogDark: 'rgba(0,0,0,0.9)', fogSoft: 'rgba(0,0,0,0.45)',
+    campGlow: 'rgba(255,180,60,0.17)'
+  };
+}
+
+let floorSeen,visible,newSeenHalo=[];
+let dirtyFOV=true, messages=[], logVisible=!window.matchMedia('(max-width:900px)').matches;
+let anims={floaters:[],trails:[],move:[],pulse:0,shakeT:0,shakeMag:0, bossFx:[], campFx:[]};
+let state;
+
+// Utilities
+function nmsg(t,c){const col=c||'#9f9';messages.unshift({t, c:col});messages=messages.slice(0,6);msg.innerHTML=messages.slice().reverse().map(m=>`<span style="color:${m.c}">${m.t}</span>`).join('<br>')}
+function floatAt(x,y,text,c){anims.floaters.push({x,y,text,c,t:12})}
+function trail(x0,y0,x1,y1){anims.trails.push({x0,y0,x1,y1,t:6})}
+function nudge(e,dx,dy){anims.move.push({e,dx,dy,t:2})}
+function los(x0,y0,x1,y1,block){let dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,err=dx+dy,x=x0,y=y0;while(true){if(!(x==x0&&y==y0)&&(block(x,y)))return false;if(x==x1&&y==y1)break;let e2=2*err;if(e2>=dy){err+=dy;x+=sx}if(e2<=dx){err+=dx;y+=sy}}return true}
+function computeFOV(){visible.fill(0);const R=10;for(let y=Math.max(0,state.py-R);y<=Math.min(H-1,state.py+R);y++)for(let x=Math.max(0,state.px-R);x<=Math.min(W-1,state.px+R);x++){if(los(state.px,state.py,x,y,(ix,iy)=>{const t=state.map[iy*W+ix];return t==TILE.wall})&&Math.hypot(x-state.px,y-state.py)<=R){const i=y*W+x;visible[i]=1;if(!floorSeen[i]){newSeenHalo.push({x,y,t:10})}floorSeen[i]=1}}}
+
+// Map
+function emptyMap(){ return new Uint8Array(W*H).fill(TILE.wall) }
+function setTile(map,x,y,t){ if(x>=0&&y>=0&&x<W&&y<H) map[y*W+x]=t }
+function box(map,x,y,w,h,t){ for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++) setTile(map,i,j,t) }
+function rect(map,x,y,w,h,t){ for(let i=x;i<x+w;i++){setTile(map,i,y,t);setTile(map,i,y+h-1,t)}for(let j=y;j<y+h;j++){setTile(map,x,j,t);setTile(map,x+w-1,j,t)} }
+
+function nearestFloor(map, tx,ty, maxR=6){
+  for(let r=0;r<=maxR;r++){
+    for(let dy=-r;dy<=r;dy++){
+      for(let dx=-r;dx<=r;dx++){
+        const x=tx+dx,y=ty+dy;
+        if(x<0||y<0||x>=W||y>=H) continue;
+        if(map[y*W+x]===TILE.floor) return {x,y};
+      }
+    }
+  }
+  return {x:tx,y:ty};
+}
+
+function buildLevel1(){
+  const L={ map:emptyMap(), items:[], mons:[], px:6, py:16, stairs:{x:42,y:16}, camps:[] };
+  // Nave
+  box(L.map,2,2,W-4,H-4,TILE.floor);
+  // Pillars
+  for(let y=6;y<H-6;y+=6){ for(let x=10;x<W-10;x+=8){ setTile(L.map,x,y,TILE.wall) } }
+  // Apse and boss arena
+  rect(L.map,32,6,12,20,TILE.wall);
+  box(L.map,33,7,10,18,TILE.floor);
+  // Gate gap to enter
+  setTile(L.map,32,16,TILE.floor);
+
+  // Stairs to descend (win)
+  setTile(L.map,L.stairs.x,L.stairs.y,TILE.stair);
+
+  // Camps: one at start, one far from start (near apse)
+  const startCamp = nearestFloor(L.map, 6,16, 2);
+  setTile(L.map, startCamp.x, startCamp.y, TILE.camp);
+  L.camps.push({x:startCamp.x, y:startCamp.y});
+
+  const farCamp = nearestFloor(L.map, 40,16, 4);
+  setTile(L.map, farCamp.x, farCamp.y, TILE.camp);
+  L.camps.push({x:farCamp.x, y:farCamp.y});
+
+  // Mobs
+  L.mons.push({x:14,y:10,t:'slime',hp:9,atk:2,def:0});
+  L.mons.push({x:16,y:20,t:'slime',hp:9,atk:2,def:0});
+  L.mons.push({x:20,y:14,t:'cultist',hp:6,atk:2,def:1});
+  // Boss on top of the staircase guarding it
+  L.mons.push({x:L.stairs.x,y:L.stairs.y,t:'boss',name:'Chapel Warden',hp:40,atk:4,def:1,phase:1,cool:0,enraged:false});
+
+  // Player spawn
+  L.px=6;L.py=16;
+  return L;
+}
+
+// Entity helpers
+function pass(x,y){if(x<0||y<0||x>=W||y>=H)return false;const t=state.map[y*W+x];return t==TILE.floor||t==TILE.stair||t==TILE.camp}
+function actorAt(x,y){return state.mons.find(m=>m.x==x&&m.y==y)}
+function tryMove(m,dx,dy){const nx=m.x+dx,ny=m.y+dy;if(nx<0||ny<0||nx>=W||ny>=H)return 0;if(state.px==nx&&state.py==ny){attack(m,state);return 1}const t=state.map[ny*W+nx];if(t==TILE.wall)return 0;if(actorAt(nx,ny))return 0;nudge(m,dx,dy);m.x=nx;m.y=ny;return 1}
+
+// Combat
+function attack(a,b){
+  if(rnd()<.08){ if(a===state) nmsg('Miss',palette().miss); return }
+  const baseAtk=(a.atk||0) + (a===state?(state.weapon.melee||0):0);
+  const dmg=Math.max(1,(baseAtk + rni(0,1))-(b.def||0));
+  b.hp=(b.hp||0)-dmg;
+  if(a===state){
+    floatAt(b.x,b.y,`-${dmg}`,'#f66'); nmsg(`Hit for ${dmg}`,'#f88');
+  }else if(b===state){
+    state.hp=Math.max(0,state.hp); floatAt(state.px,state.py,`-${dmg}`,'#f66'); nmsg(`You -${dmg}`,'#f66');
+    if(state.hp<=0){ onDeath(); return; }
+  }
+  if((b.hp||0)<=0){
+    if(b===state) return;
+    // Souls on kill
+    let gain=0;
+    if(b.t==='slime') gain = 3;
+    else if(b.t==='cultist') gain = 5;
+    else if(b.t==='boss') gain = 25;
+    if(gain>0){
+      state.souls += gain;
+      floatAt(b.x,b.y,'+'+gain, palette().gold);
+      nmsg(`You gained ${gain} souls.`, palette().gold);
+    }
+    if(b.t==='boss'){ nmsg(`${b.name||'Boss'} defeated!`, '#9f9'); }
+    state.mons = state.mons.filter(m=>m!==b);
+  }
+}
+
+// Swing (only way to damage)
+function reachAttack(){
+  const r=state.weapon.reach||1; let hits=0;
+  const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+  for(const [dx,dy] of dirs){
+    for(let d=1; d<=r; d++){
+      const x=state.px+dx*d, y=state.py+dy*d;
+      const m=actorAt(x,y);
+      if(m){ attack(state,m); hits++; break; }
+      if(!pass(x,y)) break;
+    }
+  }
+  if(!hits){ nmsg('Swing','#aaa') }
+}
+
+// Items (simple)
+function equipWeapon(w){
+  if(w==='sword'){state.weapon={name:'Sword',melee:2,reach:1,range:0}}
+  else if(w==='spear'){state.weapon={name:'Spear',melee:1,reach:2,range:0}}
+  else {state.weapon={name:'Dagger',melee:1,reach:1,range:0}}
+  nmsg('Equipped '+state.weapon.name,'#6df')
+}
+function itemAt(x,y){return state.items.find(i=>i.x==x&&i.y==y)}
+function handleCellEnter(nx,ny){
+  const it=itemAt(nx,ny);
+  if(it){
+    if(it.t=='souls'){state.souls+=it.v; nmsg('Souls +'+it.v,'#ff6'); floatAt(nx,ny,'+'+it.v,'#ff6')}
+    if(it.t=='weapon'){equipWeapon(it.w)}
+    state.items=state.items.filter(a=>a!==it)
+  }
+  // Bloodstain pickup
+  if(state.bloodstain && state.bloodstain.x===nx && state.bloodstain.y===ny){
+    if(state.bloodstain.souls>0){
+      state.souls += state.bloodstain.souls;
+      nmsg(`Recovered ${state.bloodstain.souls} souls from bloodstain.`, '#ff6');
+      floatAt(nx,ny,'SOULS+'+state.bloodstain.souls,'#ff6');
+    }else{
+      nmsg('Bloodstain fades.','#aaa');
+    }
+    state.bloodstain=null;
+  }
+  // Campfire interactions
+  const t = state.map[ny*W+nx];
+  if(t===TILE.camp){
+    restAtCamp(nx,ny);
+  }
+  return true
+}
+
+// Input and movement
+function move(dx,dy){
+  if(state.dead||state.won) return;
+  const nx=state.px+dx,ny=state.py+dy;if(nx<0||ny<0||nx>=W||ny>=H)return
+  const m=actorAt(nx,ny);
+  if(m){
+    attack(m, state); // Walking onto enemy = you take damage
+    nudge(state,dx,dy);
+    dirtyFOV=true;
+    return endTurn();
+  }
+  const t=state.map[ny*W+nx]; if(t==TILE.wall) return;
+  if(!pass(nx,ny)) return;
+  handleCellEnter(nx,ny);
+  nudge(state,dx,dy); state.px=nx; state.py=ny;
+  if(t==TILE.stair){ nmsg('You see stairs. Press > to descend.', palette().info) }
+  dirtyFOV=true;
+  endTurn();
+}
+function endTurn(){
+  // Enemies act
+  for(const m of state.mons){
+    if(m.t==='boss'){ bossAI(m); continue; }
+    normalAI(m);
+  }
+  state.turn++; dirtyFOV=true;
+}
+
+// Simple AI
+function normalAI(m){
+  const canSee=los(m.x,m.y,state.px,state.py,(x,y)=>state.map[y*W+x]==TILE.wall);
+  const d=Math.abs(m.x-state.px)+Math.abs(m.y-state.py);
+  if(canSee && d<=8){
+    const dx=Math.sign(state.px-m.x),dy=Math.sign(state.py-m.y);
+    if(Math.abs(state.px-m.x)>Math.abs(state.py-m.y)) tryMove(m,dx,0)||tryMove(m,0,dy);else tryMove(m,0,dy)||tryMove(m,dx,0);
+  }else if(rnd()<.35){ tryMove(m,rni(-1,1),rni(-1,1)) }
+}
+
+// Boss AI
+function bossAI(b){
+  if(b.cool>0) b.cool--;
+  const dist = Math.abs(b.x-state.px)+Math.abs(b.y-state.py);
+  const canSee=los(b.x,b.y,state.px,state.py,(x,y)=>state.map[y*W+x]==TILE.wall);
+  if(!b.enraged && b.hp<=20){ b.enraged=true; nmsg('The Chapel Warden becomes enraged!','#f77'); floatAt(b.x,b.y,'ENRAGED','#f77') }
+
+  const shockEvery = b.enraged?4:6;
+  if(state.turn % shockEvery === 0 && canSee){
+    doShockwave(b, 2);
+    return;
+  }
+
+  const aligned = (b.x===state.px || b.y===state.py);
+  if(aligned && dist<=2){
+    if(b.x===state.px){
+      const dy = Math.sign(state.py-b.y);
+      if(dy!==0){ bossSlashLine(b.x,b.y,0,dy,2); if(state.px===b.x && Math.abs(state.py-b.y)<=2) attack(b,state); }
+    }else{
+      const dx = Math.sign(state.px-b.x);
+      if(dx!==0){ bossSlashLine(b.x,b.y,dx,0,2); if(state.py===b.y && Math.abs(state.px-b.x)<=2) attack(b,state); }
+    }
+    return;
+  }
+
+  const speed = b.enraged? (rnd()<.7?2:1) : 1;
+  for(let s=0;s<speed;s++){
+    const dx=Math.sign(state.px-b.x),dy=Math.sign(state.py-b.y);
+    if(Math.abs(state.px-b.x)>Math.abs(state.py-b.y)) tryMove(b,dx,0)||tryMove(b,0,dy);else tryMove(b,0,dy)||tryMove(b,dx,0);
+  }
+}
+
+function doShockwave(b, radius){
+  nmsg('Warden unleashes a shockwave!','#ff9');
+  anims.bossFx.push({kind:'shock',x:b.x,y:b.y,t:14,r:radius});
+  const inR = Math.abs(state.px-b.x)+Math.abs(state.py-b.y) <= radius;
+  if(inR) attack(b,state);
+}
+function bossSlashLine(x,y,dx,dy,len){
+  anims.bossFx.push({kind:'slash',x,y,dx,dy,len,t:8});
+}
+
+// Camps: rest/checkpoint + full respawn
+function restAtCamp(x,y){
+  // Set checkpoint and fully heal; gentle glow pulse
+  state.checkpoint = {x,y,hpmax:state.hpmax, weapon:state.weapon.name};
+  state.hp = state.hpmax;
+  state.sta = state.stamax;
+  nmsg('You rest at the campfire. HP and Stamina restored.', '#ffb347');
+  floatAt(x,y,'REST','#ffb347');
+  campHint.style.display='block';
+  campHint.textContent='Camp set. You will respawn here if you die.';
+  anims.campFx.push({x,y,t:24});
+
+  // Respawn all mobs on touching the campfire
+  respawnAllMobs();
+}
+
+// Respawn mobs: rebuild default mob list (boss, slimes, cultist) at their initial positions
+function respawnAllMobs(){
+  const base = buildLevel1();
+  state.mons = base.mons.map(m => ({...m}));
+  nmsg('You feel the world rekindle... foes return.', '#ff9');
+}
+
+// Render
+function render(){
+  if(dirtyFOV){computeFOV();dirtyFOV=false}
+  ctx.imageSmoothingEnabled=false;
+  const vw=Math.floor(can.width/T),vh=Math.floor(can.height/T);
+  const ox=Math.max(0,Math.min(state.px-(vw>>1),W-vw)),oy=Math.max(0,Math.min(state.py-(vh>>1),H-vh));
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,can.width,can.height);
+  const pal=palette();
+
+  // tiles
+  for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){
+    const mx=x+ox,my=y+oy,ti=state.map[my*W+mx];
+    const seen = floorSeen[my*W+mx] ? 1 : 0;
+    const vis = visible[my*W+mx] ? 1 : 0;
+    const baseAlpha = (!fogEnabled) ? 1 : (vis?1:(seen?pal.tileSeen:0));
+    const floorCol=highContrast?pal.floorHC:pal.floor;
+    const wallCol=pal.wall;
+
+    if(ti==TILE.wall){
+      ctx.globalAlpha=baseAlpha;ctx.fillStyle=wallCol;ctx.fillRect(x*T,y*T,T,T);
+      ctx.fillStyle='#000';ctx.globalAlpha=baseAlpha*0.06;for(let yy=0;yy<T;yy+=2){for(let xx=(yy&2)?1:0;xx<T;xx+=2){ctx.fillRect(x*T+xx,y*T+yy,1,1)}}ctx.globalAlpha=baseAlpha;
+      const sN=my>0&&state.map[(my-1)*W+mx]!=TILE.wall, sS=my<H-1&&state.map[(my+1)*W+mx]!=TILE.wall, sW=mx>0&&state.map[my*W+mx-1]!=TILE.wall, sE=mx<W-1&&state.map[my*W+mx+1]!=TILE.wall;
+      ctx.fillStyle=pal.bevelLight; if(sN)ctx.fillRect(x*T,y*T,T,1); if(sW)ctx.fillRect(x*T,y*T,1,T);
+      ctx.fillStyle=pal.bevelDark; if(sS)ctx.fillRect(x*T,y*T+T-1,T,1); if(sE)ctx.fillRect(x*T+T-1,y*T,1,T);
+      ctx.globalAlpha=1;
+    }else{
+      ctx.globalAlpha=baseAlpha;ctx.fillStyle=floorCol;ctx.fillRect(x*T,y*T,T,T);
+      const n=my>0&&state.map[(my-1)*W+mx]==TILE.wall, s=my<H-1&&state.map[(my+1)*W+mx]==TILE.wall, w=mx>0&&state.map[my*W+mx-1]==TILE.wall, e=mx<W-1&&state.map[my*W+mx+1]==TILE.wall;
+      if(n||s||w||e){const sh=highContrast?pal.shadowHC:pal.shadow;ctx.fillStyle=sh;ctx.globalAlpha=baseAlpha*0.55;if(n)ctx.fillRect(x*T,y*T,T,2);if(s)ctx.fillRect(x*T,y*T+T-2,T,2);if(w)ctx.fillRect(x*T,y*T,2,T);if(e)ctx.fillRect(x*T+T-2,y*T,2,T);ctx.globalAlpha=baseAlpha*0.3;if(n)ctx.fillRect(x*T,y*T+2,T,1);if(s)ctx.fillRect(x*T,y*T+T-3,T,1);if(w)ctx.fillRect(x*T+2,y*T,1,T);if(e)ctx.fillRect(x*T+T-3,y*T,1,T);ctx.globalAlpha=baseAlpha}
+    }
+    if(ti==TILE.stair){ctx.drawImage(spr.stair,0,0,8,8,x*T,y*T,T,T)}
+    if(ti==TILE.camp){
+      if(!fogEnabled || vis){
+        ctx.globalAlpha = 1;
+        ctx.drawImage(spr.camp,0,0,8,8,x*T,y*T,T,T);
+      }else if(seen){
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(spr.camp,0,0,8,8,x*T,y*T,T,T);
+      }
+    }
+  }
+
+  // bloodstain draw
+  if(state.bloodstain){
+    const vis = !fogEnabled || visible[state.bloodstain.y*W+state.bloodstain.x];
+    if(vis){
+      const bx=(state.bloodstain.x-ox)*T, by=(state.bloodstain.y-oy)*T;
+      ctx.globalAlpha=1;
+      ctx.drawImage(spr.bloodstain,0,0,8,8,bx,by,T,T);
+      ctx.globalAlpha=0.6;
+      ctx.fillStyle='#ff5566';
+      ctx.font=`${Math.max(8,Math.floor(T*.6))}px monospace`;
+      ctx.textAlign='center';
+      ctx.fillText(state.bloodstain.souls.toString(), bx+T/2, by+T-2);
+      ctx.globalAlpha=1;
+    }
+  }
+
+  // camp glow FX pulse
+  for(const fx of anims.campFx){
+    if(fx.t<=0) continue;
+    const phase = (24 - fx.t) / 24;
+    const rad = 1 + Math.floor(2*phase);
+    ctx.save();
+    ctx.globalAlpha = 0.18 + 0.18*(1-phase);
+    ctx.fillStyle = palette().campGlow;
+    for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){
+      if(Math.abs(dx)+Math.abs(dy)<=rad){
+        const sx=(fx.x+dx-ox)*T, sy=(fx.y+dy-oy)*T;
+        ctx.fillRect(sx,sy,T,T);
+      }
+    }
+    ctx.restore();
+  }
+
+  // items
+  for(const it of state.items){
+    if(fogEnabled && !visible[it.y*W+it.x]) continue;
+    const ix=(it.x-ox)*T,iy=(it.y-oy)*T;
+    if(ix<-T||iy<-T||ix>can.width||iy>can.height) continue;
+    if(it.t=='souls')ctx.drawImage(spr.souls,0,0,8,8,ix,iy,T,T);
+    if(it.t=='weapon'){const s=it.w==='sword'?spr.sword:it.w==='spear'?spr.spear:spr.dagger;ctx.drawImage(s,0,0,8,8,ix,iy,T,T)}
+  }
+
+  // enemies
+  for(const m of state.mons){
+    if(fogEnabled && !visible[m.y*W+m.x]) continue;
+    let px=(m.x-ox)*T,py=(m.y-oy)*T;const nudgeA=anims.move.find(mm=>mm.e===m);if(nudgeA){px+=nudgeA.dx*T*(nudgeA.t/2);py+=nudgeA.dy*T*(nudgeA.t/2)}
+    if(m.t==='boss'){
+      ctx.drawImage(spr.boss16,0,0,16,16,px-T/2,py-T/2,T*2,T*2);
+    }else{
+      const s=(m.t==='slime'?spr.slime:spr.cultist);
+      ctx.drawImage(s,0,0,8,8,px,py,T,T);
+    }
+  }
+
+  // boss FX
+  for(const fx of anims.bossFx){
+    if(fx.t<=0) continue;
+    const alpha = fx.t / 14;
+    if(fx.kind==='shock'){
+      ctx.save();
+      ctx.globalAlpha = 0.18 + 0.22*alpha;
+      ctx.fillStyle = '#fcb300';
+      const r=fx.r;
+      for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+        if(Math.abs(dx)+Math.abs(dy)<=r){
+          const sx=(fx.x+dx-ox)*T, sy=(fx.y+dy-oy)*T;
+          ctx.fillRect(sx,sy,T,T);
+        }
+      }
+      ctx.restore();
+    }else if(fx.kind==='slash'){
+      ctx.save();
+      ctx.globalAlpha = 0.2 + 0.4*alpha;
+      ctx.drawImage(spr.bossShock,0,0,16,16,(fx.x-ox-0.5)*T,(fx.y-oy-0.5)*T,T*2,T*2);
+      for(let i=1;i<=fx.len;i++){
+        const sx=(fx.x+fx.dx*i-ox)*T, sy=(fx.y+fx.dy*i-oy)*T;
+        ctx.globalAlpha = 0.15 + 0.25*(alpha);
+        ctx.fillStyle = '#ff5566';
+        ctx.fillRect(sx,sy,T,T);
+      }
+      ctx.restore();
+    }
+  }
+
+  // player
+  let ppx=(state.px-ox)*T,ppy=(state.py-oy)*T;const pnudge=anims.move.find(mm=>mm.e===state);if(pnudge){ppx+=pnudge.dx*T*(pnudge.t/2);ppy+=pnudge.dy*T*(pnudge.t/2)}
+  ctx.drawImage(spr.player,0,0,8,8,ppx,ppy,T,T);
+
+  // overlays
+  if(overlays){
+    const r=state.weapon.reach||1;
+    ctx.globalAlpha=.18;ctx.fillStyle=palette().overlay;
+    for(let d=1;d<=r;d++){
+      ctx.fillRect(ppx,ppy-d*T,T,T);
+      ctx.fillRect(ppx,ppy+d*T,T,T);
+      ctx.fillRect(ppx-d*T,ppy,T,T);
+      ctx.fillRect(ppx+d*T,ppy,T,T);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // trails & floaters
+  for(const tr of anims.trails){if(tr.t>0){ctx.globalAlpha=tr.t/6;ctx.strokeStyle='#ddd';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo((tr.x0-ox+.5)*T,(tr.y0-oy+.5)*T);ctx.lineTo((tr.x1-ox+.5)*T,(tr.y1-oy+.5)*T);ctx.stroke();ctx.globalAlpha=1}}
+  for(const f of anims.floaters){if(f.t>0){const ax=(f.x-ox)*T+T/2,ay=(f.y-oy)*T+T/2 - (12-f.t);ctx.globalAlpha=f.t/12;ctx.fillStyle=f.c;ctx.font=`${Math.max(8,Math.floor(T*.7))}px monospace`;ctx.textAlign='center';ctx.fillText(f.text,ax,ay);ctx.globalAlpha=1}}
+
+  // Fog pass
+  if(fogEnabled){
+    const palFog=palette();
+    for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){
+      const mx=x+Math.max(0,Math.min(state.px-(vw>>1),W-vw));
+      const my=y+Math.max(0,Math.min(state.py-(vh>>1),H-vh));
+      const vis = visible[my*W+mx], seen=floorSeen[my*W+mx];
+      if(!seen){ctx.fillStyle=palFog.fogDark;ctx.fillRect(x*T,y*T,T,T)}
+      else if(!vis){ctx.fillStyle=palFog.fogSoft;ctx.fillRect(x*T,y*T,T,T)}
+    }
+  }
+
+  updateHud()
+}
+
+// HUD update
+function updateHud(){
+  vhp.textContent=Math.max(0,state.hp); vhpmax.textContent=state.hpmax;
+  vsta.textContent=Math.max(0,Math.floor(state.sta)); vstamax.textContent=state.stamax;
+  vsouls.textContent=state.souls; varrows.textContent=state.arrows; vwpn.textContent=state.weapon.name;
+  vseed.textContent=seedv>>>0;
+}
+
+// Input
+function onKey(e){
+  if(modalOverlay.classList.contains('show'))return
+  const k=e.key;
+  const handled = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D','>','.', ' ','r','R','N','H','C','M','V','1','2','3'].includes(k);
+  if(handled) e.preventDefault();
+
+  // If death overlay is up, any key confirms respawn if a checkpoint exists
+  if(state.dead && deathScr.classList.contains('show')){
+    confirmDeathContinue();
+    return;
+  }
+
+  if(k=='ArrowUp'||k=='w'||k=='W')move(0,-1);
+  else if(k=='ArrowDown'||k=='s'||k=='S')move(0,1);
+  else if(k=='ArrowLeft'||k=='a'||k=='A')move(-1,0);
+  else if(k=='ArrowRight'||k=='d'||k=='D')move(1,0);
+  else if(k=='.'){endTurn()}
+  else if(k==' '){ reachAttack(); endTurn() }
+  else if(k=='>'){ tryDescend() }
+  else if(k=='H'){highContrast=!highContrast;nmsg(highContrast?'High contrast on':'High contrast off',palette().info);render()}
+  else if(k=='C'){colorblind=!colorblind;nmsg(colorblind?'Colorblind palette on':'Colorblind palette off',palette().info);render()}
+  else if(k=='M'){setLogVisible(!logVisible)}
+  else if(k=='V'){overlays=!overlays;nmsg(overlays?'Overlays on':'Overlays off',palette().info)}
+  else if(k=='r'||k=='R'||k=='N'){newGame(lastSize||2)}
+  else if(k=='1'||k=='2'||k=='3'){newGame(parseInt(k))}
+}
+
+// Descend to win
+function tryDescend(){
+  if(state.map[state.py*W+state.px]===TILE.stair){
+    const bossAlive = state.mons.some(m=>m.t==='boss' && m.x===state.px && m.y===state.py);
+    if(bossAlive){
+      nmsg('The Warden blocks the stairs! Defeat it first!','#f77');
+      return;
+    }
+    nmsg('You descend the stairs...','#9f9');
+    onWin();
+  }else{
+    nmsg('No stairs here.','#aaa');
+  }
+}
+
+// Tick/resize
+function tick(){
+  for(let i=anims.move.length-1;i>=0;i--){const m=anims.move[i];m.t--;if(m.t<=0)anims.move.splice(i,1)}
+  for(let i=anims.trails.length-1;i>=0;i--){const t=anims.trails[i];t.t--;if(t.t<=0)anims.trails.splice(i,1)}
+  for(let i=anims.floaters.length-1;i>=0;i--){const f=anims.floaters[i];f.t--;if(f.t<=0)anims.floaters.splice(i,1)}
+  for(let i=anims.bossFx.length-1;i>=0;i--){const f=anims.bossFx[i];f.t--;if(f.t<=0)anims.bossFx.splice(i,1)}
+  for(let i=anims.campFx.length-1;i>=0;i--){const f=anims.campFx[i];f.t--;if(f.t<=0)anims.campFx.splice(i,1)}
+  anims.pulse++
+  render(); requestAnimationFrame(tick)
+}
+function resize(){
+  const wrapEl = document.getElementById('wrap')
+  const bottomH = document.getElementById('bottombar').offsetHeight
+  const isNarrow = window.matchMedia('(max-width:900px)').matches
+  let availW = wrapEl.clientWidth - 6
+  let availH = (isNarrow ? (window.innerHeight - document.getElementById('panel').offsetHeight - bottomH) : wrapEl.clientHeight) - 6
+  availW = Math.max(80, availW)
+  availH = Math.max(80, availH)
+  let s = Math.floor(Math.min(availW / W, availH / H))
+  s = Math.max((isNarrow?16:12), Math.min(64, s))
+  T = s
+  can.width = W * T; can.height = H * T
+  render()
+}
+const panelRO = new ResizeObserver(()=>resize());
+
+// Game setup
+let lastSize=2;
+function newGame(size=2,seedIn){
+  lastSize=size|0;if(size==1){W=44;H=28}else if(size==3){W=64;H=40}else{W=48;H=32}
+  if(seedIn!=null){seedv=seedIn|0}else{seedv=((Math.random()*2**31)|0)}
+  const g=buildLevel1();
+  floorSeen=new Uint8Array(W*H).fill(0);
+  visible=new Uint8Array(W*H).fill(0);
+  state={...g,
+    hp:14,hpmax:14,atk:2,def:0,sta:8,stamax:8,
+    souls:0,weapon:{name:'Dagger',melee:1,reach:1,range:0},arrows:0,turn:0,dead:false,won:false,
+    checkpoint: {x:g.px, y:g.py, hpmax:14, weapon:'Dagger'},
+    bloodstain:null
+  };
+  messages=[];nmsg('Level 1: The Fallen Chapel','#9f9');
+
+  document.removeEventListener('keydown',onKey);document.addEventListener('keydown',onKey,{passive:false});
+
+  setLogVisible(!window.matchMedia('(max-width:900px)').matches);
+
+  const savedCtrl = safeGet('ds_ctrl_collapse','open') || 'open';
+  setControlsCollapsed(savedCtrl==='closed');
+
+  hideOverlays();
+  dirtyFOV=true;
+  resize();render()
+}
+
+// Death/Win
+function onDeath(){
+  if(state.dead) return;
+  // Leave bloodstain with carried souls
+  if(state.souls>0){
+    state.bloodstain = {x:state.px, y:state.py, souls:state.souls};
+    nmsg(`You leave a bloodstain containing ${state.souls} souls.`, '#f77');
+    state.souls = 0;
+  }else{
+    state.bloodstain = {x:state.px, y:state.py, souls:0};
+  }
+
+  // Show YOU DIED first; rekindle occurs after click/keypress if checkpoint exists
+  state.dead = true;
+  deathScr.classList.add('show');
+  nmsg('YOU DIED','#f55');
+}
+function confirmDeathContinue(){
+  if(!state.dead) return;
+  deathScr.classList.remove('show');
+  // If checkpoint exists, rekindle there; otherwise keep death state
+  if(state.checkpoint && !state.won){
+    nmsg('The campfire rekindles you.','#ffb347');
+    state.hp = state.hpmax;
+    state.sta = state.stamax;
+    state.px = state.checkpoint.x;
+    state.py = state.checkpoint.y;
+    // Respawn all mobs on rekindle (same as touching camp)
+    respawnAllMobs();
+    hideOverlays();
+    state.dead=false;
+    dirtyFOV=true; render();
+  }
+}
+function onWin(){
+  if(state.won) return;
+  state.won=true;
+  winScr.classList.add('show');
+}
+
+// Log/controls collapse
+function setLogVisible(flag){logVisible=flag;logWrap.classList.toggle('hide',!logVisible);logToggle.textContent=logVisible?'Collapse':'Expand';resize()}
+function setControlsCollapsed(collapsed){
+  controlsBody.style.display = collapsed?'none':'block';
+  controlsToggle.textContent = collapsed?'Expand':'Collapse';
+  controlsToggle.setAttribute('aria-expanded', String(!collapsed));
+  safeSet('ds_ctrl_collapse', collapsed?'closed':'open');
+}
+controlsToggle.addEventListener('click',()=>{
+  const collapsed = controlsBody.style.display!=='none'?true:false;
+  setControlsCollapsed(collapsed);
+});
+logToggle.onclick=()=>{setLogVisible(!logVisible)};
+newBtn.onclick=()=>{hideOverlays();newGame(lastSize||2)};
+
+function hideOverlays(){deathScr.classList.remove('show');winScr.classList.remove('show')}
+modalClose.onclick=()=>modalOverlay.classList.remove('show');
+
+// Allow click anywhere on death overlay to continue
+deathScr.addEventListener('click', confirmDeathContinue);
+
+const panel = document.getElementById('panel');
+panelRO.observe(panel);
+
+// Init
+newGame();
+setLogVisible(!window.matchMedia('(max-width:900px)').matches);
+resize();requestAnimationFrame(tick);
+</script>
+</body>
+</html>
