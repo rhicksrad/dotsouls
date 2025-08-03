@@ -792,7 +792,7 @@ function newGame(seedIn){
     blockSight:new Uint8Array(W*H)
   };
   rebuildBlockers();
-  messages=[];nmsg('Level 1: The Fallen Chapel — Movement Fixed','#9f9');
+  messages=[];nmsg('Level 1: The Fallen Chapel','#9f9');
   document.removeEventListener('keydown',onKey);document.addEventListener('keydown',onKey,{passive:false});
   setLogVisible(!window.matchMedia('(max-width:900px)').matches);
   hideOverlays();setMenuOpen(false);dirtyFOV=true;actedThisTurn.attacked=false;resize();render()
@@ -838,6 +838,7 @@ requestAnimationFrame(tick);
 </script>
 </body>
 </html>
+
 
 
 
