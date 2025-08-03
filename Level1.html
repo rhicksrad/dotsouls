@@ -81,6 +81,7 @@ kbd{background:#222a33;border:1px solid #3b475a;border-radius:4px;padding:.05rem
     <div class="pill" title="Souls carried"><span class="dot"></span><span>Souls:</span><span id="soulsText">0</span></div>
     <div class="pill" title="Equipped weapon"><span class="dot" style="background:#c6f"></span><span>Weapon:</span><span id="weaponText">Dagger</span></div>
     <div class="pill" title="Flasks available"><span class="dot" style="background:#9fdc8a"></span><span>Flasks:</span><span id="flaskText">0/0</span></div><div class="pill" title="Boss Key"><span class="dot" style="background:#ffd36b"></span><span>Key:</span><span id="bossKeyText">—</span></div>
+    <div class="pill" title="Chest Keys"><span class="dot" style="background:#ffab3b"></span><span>Chest Key:</span><span id="chestKeyText">0</span></div>
     <div style="flex:1"></div>
   </div>
   <div id="left">
@@ -110,6 +111,7 @@ kbd{background:#222a33;border:1px solid #3b475a;border-radius:4px;padding:.05rem
       <div>Sharpen Weapon</div><div class="price">25</div><button data-buy="sharp">Buy</button>
       <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Keys</div>
       <div>Boss Key</div><div class="price">50</div><button data-buy="bosskey">Buy</button>
+      <div>Chest Key</div><div class="price">10</div><button data-buy="chestkey">Buy</button>
       <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Arms</div>
       <div>Sword</div><div class="price">30</div><button data-buy="sword">Buy</button>
       <div>Spear</div><div class="price">30</div><button data-buy="spear">Buy</button>
@@ -146,9 +148,9 @@ const deathScr=$('death'), winScr=$('win');
 const modalOverlay=$('modalOverlay'), modalClose=$('modalClose');
 const hpFill=$('hpFill'), staFill=$('staFill'), hpText=$('hpText'), staText=$('staText');
 const campMenuOverlay=$('campMenuOverlay'), menuGrid=$('menuGrid'), menuClose=$('menuClose'), menuSouls=$('menuSouls'), campMenuStatus=$('campMenuStatus');
-const soulsText=$('soulsText'), weaponText=$('weaponText'), flaskText=$('flaskText'), bossKeyText=$('bossKeyText');
+const soulsText=$('soulsText'), weaponText=$('weaponText'), flaskText=$('flaskText'), bossKeyText=$('bossKeyText'), chestKeyText=$('chestKeyText');
 
-function setMenuOpen(f){campMenuOverlay.classList.toggle('show',!!f);if(f){updateMenuUI()}}
+function setMenuOpen(f){campMenuOverlay.classList.toggle('show',!!f); if(f){ if(canUseCampMenu()){restAtCamp(state.px,state.py);} updateMenuUI();}}
 function canUseCampMenu(){return state.map[state.py*W+state.px]===TILE.camp&&!state.dead&&!state.won}
 function updateMenuUI(){
   if(!state) return;
@@ -183,6 +185,9 @@ menuGrid.addEventListener('click',e=>{
     }
   } else if(key==='bosskey'){
     if(spend(cost)){state.hasBossKey=true;nmsg('You obtained the boss key.','#ffd36b')}
+  }
+  else if(key==='chestkey'){
+    if(spend(cost)){state.chestKeys=(state.chestKeys||0)+1;nmsg('You obtained a chest key.','#ffd36b')}
   }
   updateHud();updateMenuUI();
 });
@@ -271,6 +276,16 @@ function los(x0,y0,x1,y1,block){
   }return true
 }
 function computeFOV(){
+  if(!state) return;
+  if(!state.map) return;
+  if(!state.boons) state.boons={light:false};
+  if(!state.blockSight){
+    state.blockSight=new Uint8Array(W*H);
+    for(let i=0;i<W*H;i++){
+      const t=state.map[i];
+      state.blockSight[i]=(t===TILE.wall||t===TILE.fog)?1:0;
+    }
+  }
   if(!visible) visible=new Uint8Array(W*H).fill(0);
   if(!floorSeen) floorSeen=new Uint8Array(W*H).fill(0);
   if(state.boons.light){
@@ -287,7 +302,15 @@ function computeFOV(){
         const i=y*W+x;visible[i]=1;if(!floorSeen[i]){newSeenHalo.push({x,y,t:10})}floorSeen[i]=1
       }
     }
-}function emptyMap(){return new Uint8Array(W*H).fill(TILE.wall)}
+}
+function recalcFOV(force){
+  if(force) dirtyFOV=true;
+  if(dirtyFOV){
+    computeFOV();
+    dirtyFOV=false;
+  }
+}
+function emptyMap(){return new Uint8Array(W*H).fill(TILE.wall)}
 function setTile(map,x,y,t){if(x>=0&&y>=0&&x<W&&y<H) map[y*W+x]=t}
 function box(map,x,y,w,h,t){for(let j=y;j<y+h;j++)for(let i=x;i<w+x;i++) setTile(map,i,j,t)}
 function rect(map,x,y,w,h,t){for(let i=x;i<x+w;i++){setTile(map,i,y,t);setTile(map,i,y+h-1,t)}for(let j=y;j<y+h;j++){setTile(map,x,j,t);setTile(map,x+w-1,j,t)}}
@@ -380,6 +403,135 @@ function buildLevel1(){
 
   L.px=startCamp.x;L.py=startCamp.y;return L
 }
+
+const levelConfigs=[
+  {
+    name:'Fallen Chapel',
+    enemies:[{t:'slime',hp:9,atk:2,def:0,count:4},{t:'cultist',hp:7,atk:3,def:1,count:3}],
+    boss:{name:'Chapel Warden',hp:60,atk:5,def:1,dropWeapon:'longsword'}
+  },
+  {
+    name:'Bone Crypt',
+    enemies:[{t:'skeleton',hp:8,atk:3,def:1,count:4},{t:'bat',hp:5,atk:2,def:0,count:3}],
+    boss:{name:'Bone Lord',hp:80,atk:4,def:2,dropWeapon:'battleaxe'}
+  },
+  {
+    name:'Arcane Tower',
+    enemies:[{t:'ghoul',hp:10,atk:3,def:1,count:3},{t:'wizard',hp:7,atk:2,def:0,count:2}],
+    boss:{name:'Arcane Sage',hp:70,atk:4,def:1,dropWeapon:'staff'}
+  },
+  {
+    name:'Sky Spire',
+    enemies:[{t:'gargoyle',hp:12,atk:4,def:2,count:2},{t:'archer',hp:6,atk:2,def:0,count:3}],
+    boss:{name:'Sky Sentinel',hp:90,atk:5,def:2,dropWeapon:'crossbow'}
+  },
+  {
+    name:'Dread Citadel',
+    enemies:[{t:'demon',hp:15,atk:5,def:2,count:3},{t:'warlock',hp:8,atk:3,def:1,count:2}],
+    boss:{name:'Dread Overlord',hp:120,atk:6,def:3,dropWeapon:'greatsword'}
+  }
+];
+function buildLevelVariant(idx){
+  let L=buildLevel1();
+  const cfg=levelConfigs[idx];
+  // replace existing monsters
+  L.mons=L.mons.filter(m=>m.t!=='slime'&&m.t!=='cultist'&&m.t!=='boss');
+  // place enemies in pattern around chapel
+  const chapel=L.chapelRect;
+  const baseX=chapel.x+5, baseY=chapel.y+5;
+  let offset=0;
+  for(const e of cfg.enemies){
+    for(let i=0;i<e.count;i++){
+      // spread them out
+      const x=baseX+((i*6+offset)%20);
+      const y=baseY+Math.floor((i*6+offset)/20)*5+2;
+      L.mons.push({x:x,y:y,t:e.t,hp:e.hp,atk:e.atk,def:e.def});
+    }
+    offset+=3;
+  }
+  // replace boss
+  // remove any boss if present
+  L.mons=L.mons.filter(m=>m.t!=='boss');
+  // compute boss position similar to original boss arena
+  const br=L.bossArenaRect;
+  const bossBack={x:br.x+Math.floor(br.w/2), y:br.y+br.h-2};
+  L.mons.push({
+    x:bossBack.x,
+    y:bossBack.y,
+    t:'boss',
+    name:cfg.boss.name,
+    hp:cfg.boss.hp,
+    atk:cfg.boss.atk,
+    def:cfg.boss.def,
+    phase:1,cool:0,enraged:false,awakened:false,
+    dropWeapon:cfg.boss.dropWeapon
+  });
+  // add locked chests around chapel: three chests, middle one is mimic for variety
+  const cx=chapel.x, cy=chapel.y;
+  L.items.push({x:cx+8,y:cy+5,t:'chest',locked:true,opened:false,mimic:false});
+  L.items.push({x:cx+14,y:cy+10,t:'chest',locked:true,opened:false,mimic:true});
+  L.items.push({x:cx+20,y:cy+5,t:'chest',locked:true,opened:false,mimic:false});
+  return L;
+}
+function loadLevel(idx,preserve){
+  const prevSouls= preserve? state.souls:0;
+  const prevChestKeys= preserve? (state.chestKeys||0):0;
+  const prevWeapon= preserve? state.weapon: null;
+  const prevFlasks= preserve? state.flasks: null;
+  const prevFlasksMax= preserve? state.flasksMax: null;
+  const prevFlaskHeal= preserve? state.flaskHeal: null;
+  const prevHp= preserve? state.hp:16;
+  const prevHpMax= preserve? state.hpmax:16;
+  const prevSta= preserve? state.sta:10;
+  const prevStaMax= preserve? state.stamax:10;
+  const prevArrows= preserve? state.arrows:0;
+  const prevBoons= preserve? state.boons:{light:false};
+  const g=buildLevelVariant(idx);
+  // Ensure start tile is passable
+  setTile(g.map,g.px,g.py,TILE.camp);
+  floorSeen=new Uint8Array(W*H).fill(0);visible=new Uint8Array(W*H).fill(0);
+  state = {
+    ...g,
+    hp: preserve? prevHp:16, hpmax: preserve? prevHpMax:16,
+    atk:2, def:0,
+    sta: preserve? prevSta:10, stamax: preserve? prevStaMax:10,
+    souls: preserve? prevSouls:0,
+    weapon: prevWeapon||{name:'Dagger',melee:1,reach:1,range:0},
+    arrows: preserve? prevArrows:0,
+    turn:0,
+    dead:false,
+    won:false,
+    inBossArena:false,
+    bossArenaSealed:false,
+    prevPosition:null,
+    checkpoint:{x:g.px,y:g.py,hpmax:16,weapon:'Dagger'},
+    bloodstain:null,
+    boons: preserve? prevBoons:{light:false},
+    flasksMax: preserve? (prevFlasksMax||2):2,
+    flasks: preserve? prevFlasks:2,
+    flaskHeal: preserve? prevFlaskHeal:10,
+    blockSight:new Uint8Array(W*H),
+    hasBossKey:false,
+    chestKeys: preserve? prevChestKeys:0,
+    currentLevelIndex:idx
+  };
+  rebuildBlockers();
+  recalcFOV(true);
+  updateHud();updateMenuUI();resize();
+  setLevelTitle();
+}
+function setLevelTitle(){
+  const cfg=levelConfigs[state.currentLevelIndex||0];
+  const levelStr='Level '+( (state.currentLevelIndex||0)+1 )+' — '+cfg.name;
+  const title='Dot Souls — '+cfg.name;
+  document.title=title;
+  $('gameTitle').textContent=title;
+  const ln=$('levelName');
+  if(ln) ln.textContent=levelStr;
+  $('new').textContent='Reset '+cfg.name;
+  const canvas=document.getElementById('c');
+  canvas.setAttribute('aria-label',levelStr);
+}
 function rebuildBlockers(){
   state.blockSight=new Uint8Array(W*H);
   for(let i=0;i<W*H;i++){const t=state.map[i];state.blockSight[i]=(t===TILE.wall||t===TILE.fog)?1:0}
@@ -439,10 +591,12 @@ function attack(a,b){
         dirtyFOV=true;
         nmsg('The door is unsealed. You can leave the arena.','#9f9');
       }
-      // spawn reward chest at boss location
+      // spawn reward chest at boss location with the boss-specific weapon
       if(!state.items.find(i=>i.t==='chest' && i.x===b.x && i.y===b.y)){
-        state.items.push({x:b.x,y:b.y,t:'chest',opened:false});
-        nmsg('A chest appears where the Chapel Warden fell!','#9f9');
+        const chest={x:b.x,y:b.y,t:'chest',opened:false};
+        if(b.dropWeapon){chest.bossChest=true;chest.weaponDrop=b.dropWeapon;}
+        state.items.push(chest);
+        nmsg(`A chest appears where ${monName(b)} fell!`,'#9f9');
       }
     }
     state.mons=state.mons.filter(m=>m!==b)
@@ -461,44 +615,67 @@ function reachAttack(){
 function equipWeapon(w){
   if(w==='sword'){state.weapon={name:'Sword',melee:2,reach:1,range:0}}
   else if(w==='spear'){state.weapon={name:'Spear',melee:1,reach:2,range:0}}
+  else if(w==='longsword'){state.weapon={name:'Longsword',melee:3,reach:2,range:1}}
+  else if(w==='battleaxe'){state.weapon={name:'Battleaxe',melee:4,reach:1,range:0}}
+  else if(w==='staff'){state.weapon={name:'Mage Staff',melee:2,reach:1,range:2}}
+  else if(w==='crossbow'){state.weapon={name:'Crossbow',melee:1,reach:1,range:3}}
+  else if(w==='greatsword'){state.weapon={name:'Greatsword',melee:5,reach:3,range:1}}
   else{state.weapon={name:'Dagger',melee:1,reach:1,range:0}}
   nmsg('Equipped '+state.weapon.name,'#6df')
 }
 function itemAt(x,y){return state.items.find(i=>i.x==x&&i.y==y)}
+
+
 function handleCellEnter(nx,ny){
   const it=itemAt(nx,ny);
   if(it && it.t==='chest'){
     if(!it.opened){
-      it.opened=true;
-      nmsg('You open the chest and find a Longsword!','#6df');
-      equipWeapon('longsword');
+      if(it.locked){
+        if((state.chestKeys||0) <= 0){
+          nmsg('Locked. Need a chest key to open.','#aaa');
+          return true;
+        }
+        state.chestKeys = Math.max(0,(state.chestKeys||0)-1);
+        // 1/3 chance of being a mimic
+        if(rnd() < 1/3){
+          state.mons.push({x:it.x,y:it.y,t:'mimic',name:'Mimic',hp:25,atk:4,def:1,phase:1,cool:0,enraged:false,awakened:false});
+          nmsg('The chest was a mimic! It reveals itself and attacks!','#f55');
+          it.opened=true;
+          return true;
+        } else {
+          state.souls += 200;
+          nmsg('You open the chest and gain 200 souls.',palette().gold);
+          it.opened=true;
+          return true;
+        }
+      } else if(it.bossChest){
+        it.opened=true;
+        if(it.weaponDrop){
+          equipWeapon(it.weaponDrop);
+          nmsg(`You claim the ${state.weapon.name} from the boss chest!`,'#6df');
+        } else {
+          nmsg('You open the chest.','#6df');
+        }
+      } else {
+        it.opened=true;
+        const amt=rni(2,6);
+        state.souls+=amt;
+        nmsg(`You open the chest and gain ${amt} souls.`,palette().gold);
+      }
     } else {
       nmsg('The chest is empty.','#aaa');
     }
     return true;
   }
-
   if(it){
     if(it.t=='souls'){state.souls+=it.v;nmsg('Souls +'+it.v,'#ff6');floatAt(nx,ny,'+'+it.v,'#ff6')}
     if(it.t=='weapon'){equipWeapon(it.w)}
     state.items=state.items.filter(a=>a!==it)
   }
   if(state.bloodstain&&state.bloodstain.x===nx&&state.bloodstain.y===ny){
-    if(state.bloodstain.souls>0){state.souls+=state.bloodstain.souls;nmsg(`Recovered ${state.bloodstain.souls} souls from bloodstain.`,'#ff6');floatAt(nx,ny,'SOULS+'+state.bloodstain.souls,'#ff6')}
-    else{nmsg('Bloodstain fades.','#aaa')}
-    state.bloodstain=null
+    state.bloodstain=null;
   }
-  const t=state.map[ny*W+nx];
-  if(t===TILE.camp){restAtCamp(nx,ny)}else setMenuOpen(false);
-  if(t===TILE.fog){enterFogGate(nx,ny)}
-  
-  // entering boss arena via the door gap
-  if(state.bossEntry && nx===state.bossEntry.x && ny===state.bossEntry.y && !state.inBossArena){
-    state.inBossArena = true;
-    state.bossArenaSealed = true;
-    nmsg('The door seals behind you!','#f77');
-  }
-return true
+  return false;
 }
 function move(dx,dy){
   if(state.dead||state.won) return;
@@ -524,6 +701,9 @@ const m=actorAt(nx,ny);if(m){return reachAttackTowards(dx,dy)}
   if(t==TILE.fog){enterFogGate(nx,ny);return}
   if(!pass(nx,ny)) return;
   handleCellEnter(nx,ny);nudge(state,dx,dy);state.px=nx;state.py=ny;
+  if(state.bossEntry && state.px===state.bossEntry.x && state.py===state.bossEntry.y && !state.inBossArena){
+    state.inBossArena=true; state.bossArenaSealed=true; nmsg('The arena seals behind you!','#f77'); 
+  }
   if(dx!==0||dy!==0){state.sta=Math.max(0,state.sta-moveCost)}
   if(t==TILE.stair){nmsg('You see stairs. Press > to descend.',palette().info)}
   dirtyFOV=true;endTurn()
@@ -612,6 +792,11 @@ function drawDoorCell(x,y,a){
   ctx.globalAlpha=1;
 }
 function render(){
+  if(!state) state={};
+  if(state.px==null) state.px=0;
+  if(state.py==null) state.py=0;
+  if(!state.map) return; // guard: level not yet loaded
+
   if(!floorSeen) floorSeen=new Uint8Array(W*H).fill(0);
   if(!visible) visible=new Uint8Array(W*H).fill(0);
   if(dirtyFOV){computeFOV();dirtyFOV=false}
@@ -718,10 +903,11 @@ function updateHud(){
   weaponText.textContent=state.weapon?.name||'—';
   flaskText.textContent=`${state.flasks}/${state.flasksMax}`;
   bossKeyText.textContent=state.hasBossKey?'Boss':'—';
+  chestKeyText.textContent=(state.chestKeys||0);
   updateMenuUI()
 }
 function spend(cost){if(state.souls>=cost){state.souls-=cost;updateHud();return true}nmsg('Not enough souls.','#aaa');return false}
-const prices={hp:20,sta:18,sharp:25,sword:30,spear:30,light:50,bosskey:50};
+const prices={hp:20,sta:18,sharp:25,sword:30,spear:30,light:50,bosskey:50, chestkey:10,};
 
 
 function adjustZoom(delta){
@@ -760,13 +946,27 @@ function onKey(e){
   else if(k=='m'||k=='M'){setLogVisible(!logVisible)}
   else if(k=='r'||k=='R'||k=='N'){newGame()}
 }
+
 function tryDescend(){
   if(state.map[state.py*W+state.px]===TILE.stair){
     const bossAlive=state.mons.some(m=>m.t==='boss');
     if(bossAlive){nmsg('The Warden blocks the way! Defeat it first!','#f77');return}
-    nmsg('You descend the stairs...','#9f9');onWin()
+    // progression: need level key (boss key) to descend to next level
+    if(!state.hasBossKey){
+      nmsg('The stairs are sealed. You need the level key to descend.','#aaa');
+      return;
+    }
+    const current=state.currentLevelIndex||0;
+    if(current < levelConfigs.length - 1){
+      state.hasBossKey=false;
+      nmsg('You descend to '+levelConfigs[current+1].name+'...','#9f9');
+      loadLevel(current+1,true);
+    } else {
+      nmsg('You descend the stairs...','#9f9');onWin();
+    }
   }else{nmsg('No stairs here.','#aaa')}
 }
+
 function enterFogGate(nx,ny){
   const onGate=state.gateCells.some(g=>g.x===nx&&g.y===ny);
   if(!onGate) return;
@@ -807,38 +1007,10 @@ function resize(){
 }
 function newGame(seedIn){
   if(seedIn!=null){seedv=seedIn|0}else{seedv=((Math.random()*2**31)|0)}
-  const g=buildLevel1();
-  // Ensure start tile is passable and seen so users don't see a black map
-  setTile(g.map,g.px,g.py,TILE.camp);
-  floorSeen=new Uint8Array(W*H).fill(0);visible=new Uint8Array(W*H).fill(0);
-  state = {
-    ...g,
-    hp:16, hpmax:16,
-    atk:2, def:0,
-    sta:10, stamax:10,
-    souls:0,
-    weapon:{name:'Dagger',melee:1,reach:1,range:0},
-    arrows:0,
-    turn:0,
-    dead:false,
-    won:false,
-    inBossArena:false,
-    bossArenaSealed:false,
-    prevPosition:null,
-    checkpoint:{x:g.px,y:g.py,hpmax:16,weapon:'Dagger'},
-    bloodstain:null,
-    boons:{light:false},
-    flasksMax:2,
-    flasks:2,
-    flaskHeal:10,
-    blockSight:new Uint8Array(W*H)
-  };
-  rebuildBlockers();
-  messages=[];nmsg('Level 1: The Fallen Chapel','#9f9');
-  document.removeEventListener('keydown',onKey);document.addEventListener('keydown',onKey,{passive:false});
-  setLogVisible(!window.matchMedia('(max-width:900px)').matches);
-  hideOverlays();setMenuOpen(false);dirtyFOV=true;actedThisTurn.attacked=false;resize();render()
+  loadLevel(0,false);
 }
+setLogVisible(!window.matchMedia('(max-width:900px)').matches);
+  hideOverlays();setMenuOpen(false);dirtyFOV=true;actedThisTurn.attacked=false;resize();render()
 function findSafeBloodstainSpot(px,py){if(!actorAt(px,py)&&pass(px,py)) return{x:px,y:py};const maxR=3;for(let r=1;r<=maxR;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=px+dx,y=py+dy;if(x<0||y<0||x>=W||y>=H) continue;if(!actorAt(x,y)&&pass(x,y)) return{x,y}}return{x:px,y:py}}
 function onDeath(){
   if(state.dead)return;
@@ -874,6 +1046,14 @@ if('ResizeObserver' in window){
 }
 
 newGame();
+window.addEventListener('keydown', onKey);
+  // TEST MODE: give player 100k souls for testing
+  if(state){
+    state.souls=100000;
+    if(typeof updateMenuUI==='function') updateMenuUI();
+    nmsg('Test: 100,000 souls granted','#6df');
+  }
+
 setLogVisible(!window.matchMedia('(max-width:900px)').matches);
 resize();
 requestAnimationFrame(tick);
