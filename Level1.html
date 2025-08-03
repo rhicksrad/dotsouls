@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dot Souls — L1: Fallen Chapel </title>
 <style>
+#panel { display:flex; flex-direction:column; }
+#events { flex: 1 1 auto; display:flex; flex-direction:column; min-height:0; }
+#logWrap { flex: 1 1 auto; min-height:0; }
 :root{--bg:#08090b;--fg:#ddd;--panel:#0d0f12;--line:#1c2129;--btn:#1a1f26;--btn2:#222834}
 html,body{height:100%;margin:0;background:radial-gradient(1200px 600px at 70% -10%, rgba(90,80,140,.16), transparent 60%),radial-gradient(900px 500px at 15% 0%, rgba(40,80,160,.14), transparent 55%),var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Arial,sans-serif}
 #ui{position:fixed;inset:0;display:grid;grid-template-columns:1fr minmax(300px,28vw);grid-template-rows:auto 1fr auto}
@@ -30,8 +33,8 @@ kbd{background:#222a33;border:1px solid #3b475a;border-radius:4px;padding:.05rem
 #panel{border-left:1px solid var(--line);background:linear-gradient(180deg, rgba(20,28,40,.65), rgba(12,16,24,.65)),#0d0f12;display:flex;flex-direction:column;min-width:300px;max-width:440px;overflow:auto}
 .section{padding:.75rem .9rem;border-bottom:1px solid var(--line)}
 .section h2{margin:.1rem 0 .5rem;font-size:1.05rem;color:#eef;display:flex;align-items:center;justify-content:space-between}
-#logWrap{overflow:hidden;max-height:12rem;transition:max-height .2s}
-#logWrap.hide{max-height:0}
+#logWrap{overflow:auto;transition:max-height .2s}
+#logWrap.hide{max-height:0;overflow:hidden}
 #msg{padding:.45rem .1rem .25rem .1rem;font-size:.95rem;white-space:normal;line-height:1.35;word-break:break-word}
 .inlineCanvas{image-rendering:pixelated}
 #modalOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:6}
@@ -60,11 +63,12 @@ kbd{background:#222a33;border:1px solid #3b475a;border-radius:4px;padding:.05rem
 #soulsText{color:#ffef6b}
 #flaskText{color:#9fdc8a}
 @media (max-width:900px){
+  #logWrap{max-height:100vh} /* or 40vh */
+  #logWrap.hide{max-height:0}
   #ui{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
   #panel{grid-row:3;border-left:none;border-top:1px solid var(--line);max-width:none}
   #left{grid-row:2}
   #bottombar{grid-row:4}
-  #logWrap{max-height:0}
   #death .text{font-size:16vw}
   #win .text{font-size:12vw}
 }
@@ -261,7 +265,20 @@ let state,deco;
 let bossDoorCells = []; // (unused placeholder, kept for compatibility if needed
 // removed isBossGate
 
-function nmsg(t,c){const col=c||'#9f9';messages.unshift({t,c:col});messages=messages.slice(0,6);msg.innerHTML=messages.slice().reverse().map(m=>`<span style="color:${m.c}">${m.t}</span>`).join('<br>')}
+function nmsg(t, c){
+  const col = c || '#9f9';
+  // append newest to the end
+  messages.push({ t, c: col });
+  // keep only the last 26 entries
+  if (messages.length > 26) messages.splice(0, messages.length - 26);
+  // render newest first (top of list)
+  let out = '';
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    out += `<span style="color:${m.c}">${m.t}</span><br>`;
+  }
+  msg.innerHTML = out;
+}
 function floatAt(x,y,text,c){anims.floaters.push({x,y,text,c,t:12})}
 function trail(x0,y0,x1,y1){anims.trails.push({x0,y0,x1,y1,t:6})}
 function nudge(e,dx,dy){anims.move.push({e,dx,dy,t:2})}
@@ -316,42 +333,258 @@ function box(map,x,y,w,h,t){for(let j=y;j<y+h;j++)for(let i=x;i<w+x;i++) setTile
 function rect(map,x,y,w,h,t){for(let i=x;i<x+w;i++){setTile(map,i,y,t);setTile(map,i,y+h-1,t)}for(let j=y;j<y+h;j++){setTile(map,x,j,t);setTile(map,x+w-1,j,t)}}
 function nearestFloor(map,tx,ty,maxR=8){for(let r=0;r<=maxR;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=tx+dx,y=ty+dy;if(x<0||y<0||x>=W||y>=H) continue;if(map[y*W+x]===TILE.floor) return{x,y}}return{x:tx,y:ty}}
 function makeGate(map,x,y,len,vert=true){for(let i=0;i<len;i++){const gx=x+(vert?0:i),gy=y+(vert?i:0);setTile(map,gx,gy,TILE.fog)}}
-
 function buildBossArena(L){
-  const aw=22, ah=16;
-  const corridorHeight=3;
-  // boss arena below chapel, connected by corridor from chapel bottom-center
-  const chapel = L.chapelRect; // must exist
-  const doorXChapel = chapel.x + Math.floor(chapel.w/2);
-  const chapelBottom = chapel.y + chapel.h - 1;
-  // place locked boss door at bottom center of chapel (requires key to open)
-  setTile(L.map, doorXChapel, chapelBottom, TILE.bossGate);
-  L.bossDoor = {x:doorXChapel,y:chapelBottom};
-  // build corridor down from chapel to boss arena top
-  const corridorStartY = chapelBottom + 1;
-  for(let y=corridorStartY; y< corridorStartY + corridorHeight; y++){
-    setTile(L.map, doorXChapel, y, TILE.floor);
-  }
-  // place boss arena below corridor
-  const ax = Math.floor(chapel.x + (chapel.w - aw)/2);
-  const ay = corridorStartY + corridorHeight; // top of boss arena
-  rect(L.map, ax, ay, aw, ah, TILE.wall);
-  box(L.map, ax+1, ay+1, aw-2, ah-2, TILE.floor);
-  // create gap in top center of boss arena so corridor feeds into it
-  const gateX = ax + Math.floor(aw/2);
-  setTile(L.map, gateX, ay, TILE.floor); // gap in top wall
-  // boss entry point just inside the arena
-  L.bossEntry = { x: gateX, y: ay+1 };
-  // boss arena is open; boss sits at the back (bottom center)
-  const bossBack = { x: ax+Math.floor(aw/2), y: ay+ah-2 };
-  L.mons.push({x:bossBack.x, y:bossBack.y, t:'boss', name:'Chapel Warden',hp:60,atk:5,def:1,phase:1,cool:0,enraged:false,awakened:false});
+// === Safe hash helpers ===
+function hash8(x,y){ return ((((x * 73856093) ^ (y * 19349663)) >>> 0) & 255); }
+function hash16(x,y){ return ((((x * 2654435761) ^ (y * 2246822519)) >>> 0) & 65535); }
+function hashChest(x,y){ return ((((x * 1103515245) + (y * 12345)) >>> 0) & 65535); }
 
-  // store boss room center for possible use
-  L.bossRoom={x: ax+Math.floor(aw/2), y: ay+Math.floor(ah/2)};
-  L.bossArenaRect = {x: ax, y: ay, w: aw, h: ah};
-  // place stair in boss arena near far side (right)
-  // stair moved to back-right behind boss
-  setTile(L.map, ax+Math.floor(aw/2)+2, ay+ah-2, TILE.stair);
+// === Local helpers ===
+const inB = (x,y)=> x>=0 && y>=0 && x<W && y<H;
+const idx = (x,y)=> y*W + x;
+const tile = (x,y)=> L.map[idx(x,y)];
+const isFloor = (x,y)=> inB(x,y) && tile(x,y) === TILE.floor;
+const set = (x,y,t)=>{ if(inB(x,y)) setTile(L.map,x,y,t); };
+
+const monAt = (x,y)=> L.mons.some(m=>m.x===x && m.y===y);
+const placeMon = (x,y,t,hp,atk,def,extra)=>{
+if(!isFloor(x,y) || monAt(x,y)) return false;
+const m = Object.assign({ x, y, t, hp, atk, def }, extra||{});
+L.mons.push(m);
+return true;
+};
+
+const items = L.items || (L.items = []);
+const itemAt = (x,y)=> items.some(it=>it.x===x && it.y===y);
+const placeChest = (x,y,locked)=>{
+if(!isFloor(x,y) || itemAt(x,y)) return false;
+items.push({ x, y, t: locked ? 'chestLocked' : 'chest' });
+return true;
+};
+
+const decoArr = L.deco || (typeof deco !== 'undefined' ? deco : null);
+const setDeco = (x,y,val)=>{
+if(!decoArr || !inB(x,y)) return;
+decoArr[idx(x,y)] = val;
+};
+
+// === Layout refs ===
+const arenaW = 26, arenaH = 18;
+const antechDepth = 7;
+const wingW = 6;
+const corridorH = 3;
+
+const chapel = L.chapelRect;
+const doorX = chapel.x + Math.floor(chapel.w/2);
+const chapelBottom = chapel.y + chapel.h - 1;
+
+// Boss gate at chapel
+set(doorX, chapelBottom, TILE.bossGate);
+L.bossDoor = { x: doorX, y: chapelBottom };
+
+// === Carve field first (no "margin2") ===
+const margin = 2;
+const field = {
+x: margin,
+y: Math.max(1, chapel.y - 2),
+w: W - (margin * 2),
+h: H - (margin * 2)
+};
+
+for(let y=field.y; y<field.y+field.h; y++){
+for(let x=field.x; x<field.x+field.w; x++){
+set(x,y,TILE.floor);
+}
+}
+rect(L.map, field.x, field.y, field.w, field.h, TILE.wall);
+
+// Corridor below chapel
+for(let y=chapelBottom+1; y<chapelBottom+1+corridorH; y++) set(doorX,y,TILE.floor);
+
+// === Boss complex AFTER field ===
+const ax = Math.floor(chapel.x + (chapel.w - arenaW)/2);
+const ay = chapelBottom + 1 + corridorH + antechDepth;
+
+// Antechamber
+const anteW = arenaW - 6;
+const anteX = ax + 3;
+const anteY = ay - antechDepth;
+rect(L.map, anteX, anteY, anteW, antechDepth, TILE.wall);
+box(L.map, anteX+1, anteY+1, anteW-2, antechDepth-2, TILE.floor);
+
+// Path from chapel corridor to antechamber
+set(doorX, anteY, TILE.floor);
+for(let y=chapelBottom+1; y<=anteY; y++) set(doorX,y,TILE.floor);
+
+// Aisle through antechamber to arena gate
+for(let y=anteY+1; y<ay; y++) set(doorX,y,TILE.floor);
+
+// Arena core
+rect(L.map, ax, ay, arenaW, arenaH, TILE.wall);
+box(L.map, ax+1, ay+1, arenaW-2, arenaH-2, TILE.floor);
+
+// Arena entry
+const gateX = ax + Math.floor(arenaW/2);
+set(gateX, ay, TILE.floor);
+L.bossEntry = { x: gateX, y: ay+1 };
+
+// Pillars
+[
+{x: ax+5, y: ay+5},
+{x: ax+arenaW-6, y: ay+5},
+{x: ax+5, y: ay+arenaH-6},
+{x: ax+arenaW-6, y: ay+arenaH-6},
+{x: ax+Math.floor(arenaW/2), y: ay+Math.floor(arenaH/2)}
+].forEach(p=> set(p.x,p.y,TILE.wall));
+
+// Side wings
+const leftWing = { x: ax - wingW, y: ay+3, w: wingW, h: arenaH-6 };
+const rightWing = { x: ax + arenaW, y: ay+3, w: wingW, h: arenaH-6 };
+rect(L.map, leftWing.x, leftWing.y, leftWing.w, leftWing.h, TILE.wall);
+rect(L.map, rightWing.x, rightWing.y, rightWing.w, rightWing.h, TILE.wall);
+box(L.map, leftWing.x+1, leftWing.y+1, leftWing.w-2, leftWing.h-2, TILE.floor);
+box(L.map, rightWing.x+1, rightWing.y+1, rightWing.w-2, rightWing.h-2, TILE.floor);
+set(ax, ay + Math.floor(arenaH/2), TILE.floor);
+set(ax+arenaW-1, ay + Math.floor(arenaH/2), TILE.floor);
+
+// Boss and stair
+const bossX = ax + Math.floor(arenaW/2);
+const bossY = ay + arenaH - 3;
+placeMon(bossX, bossY, 'boss', 70, 6, 2, { name:'Chapel Warden', phase:1, cool:0, enraged:false, awakened:false });
+set(bossX, ay + arenaH - 2, TILE.stair);
+L.bossRoom = { x: bossX, y: ay + Math.floor(arenaH/2) };
+L.bossArenaRect = { x: ax, y: ay, w: arenaW, h: arenaH };
+
+// Preserve boss door
+set(L.bossDoor.x, L.bossDoor.y, TILE.bossGate);
+
+// Avoid predicates
+const inArena = (x,y)=> (x>=ax && x<ax+arenaW && y>=ay && y<ay+arenaH);
+const inLeftWing = (x,y)=> (x>=leftWing.x && x<leftWing.x+leftWing.w && y>=leftWing.y && y<leftWing.y+leftWing.h);
+const inRightWing = (x,y)=> (x>=rightWing.x && x<rightWing.x+rightWing.w && y>=rightWing.y && y<rightWing.y+rightWing.h);
+const inAnte = (x,y)=> (x>=anteX && x<anteX+anteW && y>=anteY && y<anteY+antechDepth);
+const avoid = (x,y)=> inArena(x,y) || inLeftWing(x,y) || inRightWing(x,y) || inAnte(x,y);
+
+// === Decorations ===
+// Angled subtle stripes
+for(let d=0; d<6; d++){
+const offset = (d*6) % 12;
+for(let y=field.y+1; y<field.y+field.h-1; y++){
+const x = field.x + 2 + ((y + offset) % 12);
+if(!avoid(x,y) && isFloor(x,y)) setDeco(x,y, DEC.scratch);
+}
+}
+// Light grid dots
+for(let y=field.y+2; y<field.y+field.h-2; y+=4){
+for(let x=field.x+2; x<field.x+field.w-2; x+=5){
+if(avoid(x,y)) continue;
+const r = hash8(x,y) & 7;
+setDeco(x,y, r===0 ? DEC.glass : DEC.pew);
+}
+}
+// Candles
+[
+{x: field.x+3, y: field.y+3},
+{x: field.x+field.w-4, y: field.y+3},
+{x: field.x+3, y: field.y+field.h-4},
+{x: field.x+field.w-4, y: field.y+field.h-4},
+{x: field.x+Math.floor(field.w/2), y: field.y+2},
+{x: field.x+Math.floor(field.w/2), y: field.y+field.h-3}
+].forEach(p=> setDeco(p.x,p.y,DEC.candle));
+setDeco(leftWing.x + Math.floor(leftWing.w/2), leftWing.y + 2, DEC.candle);
+setDeco(rightWing.x + Math.floor(rightWing.w/2), rightWing.y + 2, DEC.candle);
+
+// === Encounters ===
+// Scatter
+for(let y=field.y+2; y<field.y+field.h-2; y+=3){
+for(let x=field.x+2; x<field.x+field.w-2; x+=4){
+if(avoid(x,y)) continue;
+const roll = hash16(x,y) & 15;
+if(roll < 3) placeMon(x,y,'slime',9,2,0);
+else if(roll < 5) placeMon(x,y,'cultist',7,3,1);
+else if(roll === 15) placeMon(x,y,'ranger',8,3,0);
+}
+}
+// Patrols
+const bandTopY = field.y + 5;
+const bandBotY = field.y + field.h - 6;
+for(let x=field.x+3; x<field.x+field.w-3; x+=6){
+if(!avoid(x,bandTopY)) placeMon(x,bandTopY,'cultist',9,3,1);
+if(!avoid(x,bandBotY)) placeMon(x,bandBotY,'slime',10,2,0);
+}
+const bandLX = field.x + 6;
+const bandRX = field.x + field.w - 7;
+for(let y=field.y+4; y<field.y+field.h-4; y+=5){
+if(!avoid(bandLX,y)) placeMon(bandLX,y,'cultist',9,3,1);
+if(!avoid(bandRX,y)) placeMon(bandRX,y,'slime',10,2,0);
+}
+// Flanks near arena
+const leftLaneX = Math.max(field.x+3, ax - 16);
+const rightLaneX = Math.min(field.x+field.w-4, ax + arenaW + 16);
+for(let y=ay; y<Math.min(field.y+field.h-3, ay+arenaH+20); y+=3){
+placeMon(leftLaneX, y, 'cultist',10,3,2);
+if((((y - ay) / 3) % 2) === 0) placeMon(rightLaneX, y, 'ranger',9,3,1);
+}
+// Mini-encounters (guard packs)
+const packs = [
+{ x: field.x + Math.floor(field.w * 0.25), y: field.y + Math.floor(field.h * 0.30) },
+{ x: field.x + Math.floor(field.w * 0.72), y: field.y + Math.floor(field.h * 0.35) },
+{ x: field.x + Math.floor(field.w * 0.40), y: field.y + Math.floor(field.h * 0.70) },
+{ x: field.x + Math.floor(field.w * 0.65), y: field.y + Math.floor(field.h * 0.65) }
+];
+for(let i=0;i<packs.length;i++){
+const s = packs[i];
+for(let dy=-1; dy<=1; dy++){
+for(let dx=-1; dx<=1; dx++){
+if((Math.abs(dx)+Math.abs(dy)) > 2) continue;
+const px = s.x + dx, py = s.y + dy;
+if(avoid(px,py)) continue;
+const rr = ((dx + 2) ^ (dy + 3)) & 3;
+if(rr < 2) placeMon(px,py,'cultist',9,3,1);
+else placeMon(px,py,'slime',10,2,0);
+}
+}
+}
+// Antechamber ambush ring
+const anteMid = { x: doorX, y: anteY + Math.floor(antechDepth/2) };
+[[1,0],[-1,0],[0,1],[0,-1],[2,0],[-2,0],[0,2],[0,-2]].forEach(([dx,dy])=>{
+placeMon(anteMid.x+dx, anteMid.y+dy, 'cultist',8,3,1);
+});
+// Wing elites
+placeMon(leftWing.x + Math.floor(leftWing.w/2), leftWing.y + Math.floor(leftWing.h/2), 'ranger',11,4,1);
+placeMon(rightWing.x + Math.floor(rightWing.w/2), rightWing.y + Math.floor(rightWing.h/2), 'cultist',12,4,2);
+
+// === Treasure ===
+for(let y=field.y+4; y<field.y+field.h-4; y+=7){
+for(let x=field.x+4; x<field.x+field.w-4; x+=9){
+if(avoid(x,y)) continue;
+const r = hashChest(x,y) & 15;
+if(r===0) placeChest(x,y,false);
+else if(r===15) placeChest(x,y,true);
+}
+}
+placeChest(field.x+8, field.y+6, false);
+placeChest(field.x+field.w-9, field.y+6, true);
+placeChest(leftWing.x + Math.floor(leftWing.w/2), leftWing.y + 2, true);
+placeChest(rightWing.x + Math.floor(rightWing.w/2), rightWing.y + 2, true);
+
+// Feature chest guards
+const features = [
+{ x: field.x+field.w-9, y: field.y+6 },
+{ x: leftWing.x + Math.floor(leftWing.w/2), y: leftWing.y + 2 },
+{ x: rightWing.x + Math.floor(rightWing.w/2), y: rightWing.y + 2 }
+];
+for(let i=0;i<features.length;i++){
+const p = features[i];
+const ring = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+for(let j=0;j<ring.length;j++){
+const rx = p.x + ring[j][0], ry = p.y + ring[j][1];
+placeMon(rx, ry, 'cultist', 11, 4, 2);
+}
+}
+
+// Final safety
+set(L.bossDoor.x, L.bossDoor.y, TILE.bossGate);
 }
 function buildLevel1(){
   const L={map:new Uint8Array(W*H).fill(TILE.floor),items:[],mons:[],px:8,py:Math.floor(H/2),stairs:{x:W-10,y:Math.floor(H/2)},camps:[],gateCells:[],bossRoom:null};
@@ -556,11 +789,14 @@ const STAMINA={move:1,attackBase:2,extraReach:1,waitRegen:2,perTurnRegenNoAttack
 let actedThisTurn={attacked:false};
 function monName(m){if(!m) return 'Unknown';if(m.t==='boss') return m.name||'Chapel Warden';if(m.t==='slime') return 'Slime';if(m.t==='cultist') return 'Cultist';return (m.name||m.t||'Foe')}
 function attack(a,b){
-  if(rnd()<.08){
-    if(a===state){nmsg('You miss.','#aaa')}
-    else if(b===state){nmsg(`${monName(a)} misses you.','#aaa`)}
-    return
+if (rnd() < 0.08) {
+  if (a === state) {
+    nmsg('You miss.');
+  } else if (b === state) {
+    nmsg(`${monName(a)} misses you.`);
   }
+  return;
+}
   const baseAtk=(a.atk||0)+(a===state?(state.weapon.melee||0):0);
   const dmg=Math.max(1,(baseAtk+rni(0,1))-(b.def||0));
   b.hp=(b.hp||0)-dmg;
@@ -776,7 +1012,18 @@ function useFlask(){
   nmsg(`You drink from a flask and heal ${healed} HP. (${state.flasks}/${state.flasksMax} left)`,'#9fdc8a');
   updateHud()
 }
-function respawnAllMobs(){const base=buildLevel1();const bossDead=!state.mons.some(m=>m.t==='boss');state.mons=base.mons.filter(m=>!(bossDead&&m.t==='boss')).map(m=>({...m}));clearNudges();dirtyFOV=true;nmsg('You feel the world rekindle... foes return.','#ff9')}
+function respawnAllMobs(){
+const idx = state.currentLevelIndex || 0;
+const rebuilt = buildLevelVariant(idx);
+const bossDead = !state.mons.some(m => m.t === 'boss');
+// Keep the current map, items, etc. Only replace monsters from the correct level
+state.mons = rebuilt.mons
+.filter(m => !(bossDead && m.t === 'boss'))
+.map(m => ({ ...m }));
+clearNudges();
+dirtyFOV = true;
+nmsg('You feel the world rekindle... foes return.', '#ff9');
+}
 function drawFloorCell(x,y,a){
   const pal=palette();ctx.globalAlpha=a;ctx.fillStyle=pal.floor;ctx.fillRect(x*T,y*T,T,T);
   const pa=Math.max(0,Math.min(1,a*.08));if(pa>0){ctx.globalAlpha=pa;ctx.fillStyle='#9fb3d4';for(let yy=0;yy<T;yy+=3){ctx.fillRect(x*T,y*T+yy,T,1)}for(let xx=0;xx<T;xx+=3){ctx.fillRect(x*T+xx,y*T,1,T)}}
