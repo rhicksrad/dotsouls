@@ -332,24 +332,38 @@ function buildBossArena(L){
   for(let y=corridorStartY; y< corridorStartY + corridorHeight; y++){
     setTile(L.map, doorXChapel, y, TILE.floor);
   }
-  // place boss arena below corridor
-  const ax = Math.floor(chapel.x + (chapel.w - aw)/2);
-  const ay = corridorStartY + corridorHeight; // top of boss arena
-  rect(L.map, ax, ay, aw, ah, TILE.wall);
-  box(L.map, ax+1, ay+1, aw-2, ah-2, TILE.floor);
-  // create gap in top center of boss arena so corridor feeds into it
-  const gateX = ax + Math.floor(aw/2);
-  setTile(L.map, gateX, ay, TILE.floor); // gap in top wall
-  // boss entry point just inside the arena
-  L.bossEntry = { x: gateX, y: ay+1 };
-  // boss arena is open; boss sits at the back (bottom center)
-  const bossBack = { x: ax+Math.floor(aw/2), y: ay+ah-2 };
-  L.mons.push({x:bossBack.x, y:bossBack.y, t:'boss', name:'Chapel Warden',hp:60,atk:5,def:1,phase:1,cool:0,enraged:false,awakened:false});
+// place boss arena below corridor
+const ax = Math.floor(chapel.x + (chapel.w - aw) / 2);
+const ay = corridorStartY + corridorHeight; // top of boss arena
 
-  // store boss room center for possible use
-  L.bossRoom={x: ax+Math.floor(aw/2), y: ay+Math.floor(ah/2)};
-  L.bossArenaRect = {x: ax, y: ay, w: aw, h: ah};
-  // place stair in boss arena near far side (right)
+rect(L.map, ax, ay, aw, ah, TILE.wall);
+box(L.map, ax + 1, ay + 1, aw - 2, ah - 2, TILE.floor);
+
+// create gap in top center of boss arena so corridor feeds into it
+const gateX = ax + Math.floor(aw / 2);
+setTile(L.map, gateX, ay, TILE.floor); // gap in top wall
+
+// boss entry point just inside the arena
+L.bossEntry = { x: gateX, y: ay + 1 };
+
+// boss arena is open; boss sits at the back (bottom center)
+const bossBack = { x: ax + Math.floor(aw / 2), y: ay + ah - 2 };
+
+// ADD BOSS (once) WITH dropWeapon
+L.mons.push({
+  x: bossBack.x, y: bossBack.y,
+  t: 'boss', name: 'Chapel Warden',
+  hp: 60, atk: 5, def: 1,
+  phase: 1, cool: 0, enraged: false, awakened: false,
+  dropWeapon: 'longsword'
+});
+
+// store boss room center for possible use
+L.bossRoom = { x: ax + Math.floor(aw / 2), y: ay + Math.floor(ah / 2) };
+L.bossArenaRect = { x: ax, y: ay, w: aw, h: ah };
+
+// place stair in boss arena near far side (right)
+setTile(L.map, ax + Math.floor(aw / 2) + 2, ay + ah - 2, TILE.stair);
   // stair moved to back-right behind boss
   setTile(L.map, ax+Math.floor(aw/2)+2, ay+ah-2, TILE.stair);
 }
@@ -1073,5 +1087,6 @@ requestAnimationFrame(tick);
 </script>
 </body>
 </html>
+
 
 
