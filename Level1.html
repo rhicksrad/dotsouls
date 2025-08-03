@@ -626,63 +626,69 @@ function equipWeapon(w){
 function itemAt(x,y){return state.items.find(i=>i.x==x&&i.y==y)}
 
 
-function handleCellEnter(nx,ny){
-  const it=itemAt(nx,ny);
-  if(it && it.t==='chest'){
-    if(!it.opened){
-      if(it.locked){
-        if((state.chestKeys||0) <= 0){
+function handleCellEnter(nx, ny){
+  const it = itemAt(nx, ny);
+  if (it && it.t === 'chest'){
+    if (!it.opened){
+      if (it.locked){
+        if ((state.chestKeys || 0) <= 0){
           nmsg('Locked. Need a chest key to open.','#aaa');
           return true;
         }
         state.chestKeys = Math.max(0,(state.chestKeys||0)-1);
-        // 1/3 chance of being a mimic
-        if(rnd() < 1/3){
+        if (rnd() < 1/3){
           state.mons.push({x:it.x,y:it.y,t:'mimic',name:'Mimic',hp:25,atk:4,def:1,phase:1,cool:0,enraged:false,awakened:false});
           nmsg('The chest was a mimic! It reveals itself and attacks!','#f55');
-          it.opened=true;
+          it.opened = true;
           return true;
         } else {
           state.souls += 200;
-          nmsg('You open the chest and gain 200 souls.',palette().gold);
-          it.opened=true;
+          nmsg('You open the chest and gain 200 souls.', palette().gold);
+          it.opened = true;
           return true;
         }
-      } else if(it.bossChest){
-        it.opened=true;
-        if(it.weaponDrop){
+      } else if (it.bossChest){
+        it.opened = true;
+        if (it.weaponDrop){
           equipWeapon(it.weaponDrop);
-          nmsg(`You claim the ${state.weapon.name} from the boss chest!`,'#6df');
+          nmsg(`You claim the ${state.weapon.name} from the boss chest!`, '#6df');
         } else {
-          nmsg('You open the chest.','#6df');
+          nmsg('You open the chest.', '#6df');
         }
       } else {
-        it.opened=true;
-        const amt=rni(2,6);
-        state.souls+=amt;
-        nmsg(`You open the chest and gain ${amt} souls.`,palette().gold);
+        it.opened = true;
+        const amt = rni(2,6);
+        state.souls += amt;
+        nmsg(`You open the chest and gain ${amt} souls.`, palette().gold);
       }
     } else {
-      nmsg('The chest is empty.','#aaa');
+      nmsg('The chest is empty.', '#aaa');
     }
     return true;
   }
-  if(it){
-    if(it.t=='souls'){state.souls+=it.v;nmsg('Souls +'+it.v,'#ff6');floatAt(nx,ny,'+'+it.v,'#ff6')}
-    if(it.t=='weapon'){equipWeapon(it.w)}
-    state.items=state.items.filter(a=>a!==it)
+
+  if (it){
+    if (it.t == 'souls'){ state.souls += it.v; nmsg('Souls +' + it.v, '#ff6'); floatAt(nx, ny, '+' + it.v, '#ff6'); }
+    if (it.t == 'weapon'){ equipWeapon(it.w); }
+    state.items = state.items.filter(a => a !== it);
   }
-if (state.bloodstain && state.bloodstain.x === nx && state.bloodstain.y === ny) {
-  const recovered = state.bloodstain.souls || 0;
-  if (recovered > 0) {
-    state.souls += recovered;
-    nmsg(`You recovered ${recovered} souls.`, palette().gold);
-    floatAt(nx, ny, '+' + recovered, palette().gold);
-  } else {
-    nmsg('You touch the bloodstain, but it holds no souls.', '#aaa');
+
+  // Bloodstain pickup
+  if (state.bloodstain && state.bloodstain.x === nx && state.bloodstain.y === ny) {
+    const recovered = state.bloodstain.souls || 0;
+    if (recovered > 0) {
+      state.souls += recovered;
+      nmsg(`You recovered ${recovered} souls.`, palette().gold);
+      floatAt(nx, ny, '+' + recovered, palette().gold);
+    } else {
+      nmsg('You touch the bloodstain, but it holds no souls.', '#aaa');
+    }
+    state.bloodstain = null;
+    updateHud();
+    return true; // already consumed a pickup on this cell
   }
-  state.bloodstain = null;
-  updateHud();
+
+  return false;
 }
 function move(dx,dy){
   if(state.dead||state.won) return;
@@ -1067,4 +1073,5 @@ requestAnimationFrame(tick);
 </script>
 </body>
 </html>
+
 
