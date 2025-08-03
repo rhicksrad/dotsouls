@@ -1062,9 +1062,9 @@ newGame();
 window.addEventListener('keydown', onKey);
   // TEST MODE: give player 100k souls for testing
   if(state){
-    state.souls=100000;
+    state.souls=50;
     if(typeof updateMenuUI==='function') updateMenuUI();
-    nmsg('Test: 100,000 souls granted','#6df');
+    nmsg('Test: 50 souls granted','#6df');
   }
 
 setLogVisible(!window.matchMedia('(max-width:900px)').matches);
@@ -1073,3 +1073,4 @@ requestAnimationFrame(tick);
 </script>
 </body>
 </html>
+
