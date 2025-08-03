@@ -1,58 +1,209 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="utf-8" /> <meta name="viewport" content="width=device-width,initial-scale=1" /> <title>Dot Souls — L1: Fallen Chapel </title> <style> :root{--bg:#08090b;--fg:#ddd;--panel:#0d0f12;--line:#1c2129;--btn:#1a1f26;--btn2:#222834} html,body{height:100%;margin:0;background:radial-gradient(1200px 600px at 70% -10%, rgba(90,80,140,.16), transparent 60%),radial-gradient(900px 500px at 15% 0%, rgba(40,80,160,.14), transparent 55%),var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Arial,sans-serif} #ui{position:fixed;inset:0;display:grid;grid-template-columns:1fr minmax(300px,28vw);grid-template-rows:auto 1fr auto} #topbar{grid-column:1/-1;display:flex;align-items:center;gap:.7rem;border-bottom:1px solid var(--line);background:linear-gradient(to bottom, rgba(12,16,22,.6), rgba(12,16,22,.35) 50%, rgba(12,16,22,.6)),linear-gradient(to bottom, #0c1017, #0a0d13 40%, #0b0e14);padding:.5rem .75rem} #gameTitle{font-weight:700;letter-spacing:.02em} .small{font-size:.92rem} .bars{display:flex;gap:.6rem;align-items:center} .barWrap{display:flex;align-items:center;gap:.4rem;min-width:180px} .bar{position:relative;width:160px;height:14px;background:#161b24;border:1px solid #2a3342;border-radius:999px;overflow:hidden} .barFill{position:absolute;inset:0;width:50%;background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #2b8;transform-origin:left center;transition:width .12s ease} .bar.hp .barFill{background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #c33} .bar.sta .barFill{background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #3cb371} .barLabel{font-size:.88rem;opacity:.85} #left{display:grid;grid-template-rows:1fr auto;min-width:0;min-height:0;overflow:hidden;position:relative} /* refactored: wrap expanded and padded minimally so canvas gets more real estate */ #wrap{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:4px 8px 0 8px} #c{image-rendering:pixelated;border:2px solid #2a3342;background:linear-gradient(#07090d,#070a10);max-width:100%;max-height:100%;box-shadow:0 10px 40px rgba(0,0,0,.55), inset 0 0 28px rgba(20,30,60,.35)} #bottombar{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-top:1px solid var(--line);background:#0c0f14} #bottombar .hint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem;opacity:.9} button{background:var(--btn);color:var(--fg);border:2px solid #344055;border-radius:10px;padding:.38rem .7rem;cursor:pointer;font-size:.9rem;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)} button:hover{background:var(--btn2)} kbd{background:#222a33;border:1px solid #3b475a;border-radius:4px;padding:.05rem .3rem;font-size:.85rem} #panel{border-left:1px solid var(--line);background:linear-gradient(180deg, rgba(20,28,40,.65), rgba(12,16,24,.65)),#0d0f12;display:flex;flex-direction:column;min-width:300px;max-width:440px;overflow:auto} .section{padding:.75rem .9rem;border-bottom:1px solid var(--line)} .section h2{margin:.1rem 0 .5rem;font-size:1.05rem;color:#eef;display:flex;align-items:center;justify-content:space-between} #logWrap{overflow:hidden;max-height:12rem;transition:max-height .2s} #logWrap.hide{max-height:0} #msg{padding:.45rem .1rem .25rem .1rem;font-size:.95rem;white-space:normal;line-height:1.35;word-break:break-word} .inlineCanvas{image-rendering:pixelated} #modalOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:6} #modalOverlay.show{display:grid} .modalCard{background:#0b0f14;border:1px solid #2a3342;border-radius:12px;min-width:260px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)} .modalCard h3{margin:.2rem 0 .7rem} .row{display:flex;gap:.5rem;align-items:center;justify-content:flex-end;margin-top:.8rem} #death{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7;cursor:pointer} #death.show{display:flex} #death .text{font-size:10vw;color:#b00;text-shadow:0 0 18px rgba(255,0,0,.25);font-weight:900;letter-spacing:.15em} #win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7} #win.show{display:flex} #win .text{font-size:7vw;color:#8f8;text-shadow:0 0 18px rgba(127,255,200,.25);font-weight:800;letter-spacing:.08em} .badge{display:inline-flex;align-items:center;gap:.45rem;background:#121827;border:1px solid #2b3750;color:#cfe7ff;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;letter-spacing:.03em} .badgeDot{width:.6rem;height:.6rem;border-radius:50%;background:conic-gradient(from 0deg, #6bc1ff, #c870ff, #ff8d6b, #ffd36b, #6bc1ff);box-shadow:0 0 8px rgba(120,160,255,.35)} .badgeLine{width:1px;height:12px;background:#2b3750} #campMenuOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:8} #campMenuOverlay.show{display:grid} .menuCard{background:#0b0f14;border:1px solid #2a3342;border-radius:12px;min-width:280px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)} .menuCard h3{margin:.2rem 0 .6rem} .menuGrid{display:grid;grid-template-columns:1fr auto auto;gap:.4rem .6rem;align-items:center} .price{color:#ffef6b} .disabled{opacity:.45;filter:grayscale(.6)} .pill{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .55rem;border-radius:999px;border:1px solid #2a3342;background:#0e1320;font-size:.8rem} .pill .dot{width:.5rem;height:.5rem;border-radius:50%;background:#6df;box-shadow:0 0 6px rgba(100,220,255,.35)} #soulsText{color:#ffef6b} #flaskText{color:#9fdc8a} @media (max-width:900px){ #ui{grid-template-columns:1fr;grid-template-rows:auto 1fr auto} #panel{grid-row:3;border-left:none;border-top:1px solid var(--line);max-width:none} #left{grid-row:2} #bottombar{grid-row:4} #logWrap{max-height:0} #death .text{font-size:16vw} #win .text{font-size:12vw} } </style> </head> <body> <div id="ui"> <div id="topbar"> <div><div id="gameTitle">Dot Souls</div><div id="levelName" class="small" style="opacity:.8">Level 1 — The Fallen Chapel</div></div> <div class="bars" aria-label="Player vital bars"> <div class="barWrap"><span class="barLabel">HP</span><div class="bar hp"><div id="hpFill" class="barFill" style="width:50%"></div></div><span class="small" id="hpText">0/0</span></div> <div class="barWrap"><span class="barLabel">Stamina</span><div class="bar sta"><div id="staFill" class="barFill" style="width:50%"></div></div><span class="small" id="staText">0/0</span></div> </div> <div class="pill" title="Souls carried"><span class="dot"></span><span>Souls:</span><span id="soulsText">0</span></div> <div class="pill" title="Equipped weapon"><span class="dot" style="background:#c6f"></span><span>Weapon:</span><span id="weaponText">Dagger</span></div> <div class="pill" title="Flasks available"><span class="dot" style="background:#9fdc8a"></span><span>Flasks:</span><span id="flaskText">0/0</span></div><div class="pill" title="Boss Key"><span class="dot" style="background:#ffd36b"></span><span>Key:</span><span id="bossKeyText">—</span></div> <div class="pill" title="Chest Keys"><span class="dot" style="background:#ffab3b"></span><span>Chest Key:</span><span id="chestKeyText">0</span></div> <div style="flex:1"></div> </div> <div id="left"> <div id="wrap"><canvas id="c" width="512" height="384" role="img" aria-label="Level 1: The Fallen Chapel"></canvas></div> <div id="bottombar"> <div class="hint">Arrows/WASD move • . wait • Space swing • &gt; descend • H heal • L camp menu • R/N reset • M toggle log</div> <button id="new">Reset Level 1</button> </div> </div> <div id="panel"> <div id="events" class="section" style="border-bottom:none"> <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem"> <h2 style="margin:0">Events</h2><button id="logToggle">Collapse</button> </div> <div id="logWrap"><div id="msg"></div></div> </div> </div> </div> <div id="campMenuOverlay" aria-hidden="true"> <div class="menuCard" role="dialog" aria-modal="true"> <h3>Camp Menu</h3> <div class="small" id="campMenuStatus" style="margin-bottom:.6rem;opacity:.8"></div> <div id="menuGrid" class="menuGrid"> <div class="hdr" style="grid-column:1/-1;opacity:.9;margin:.2rem 0">Upgrades</div> <div>Increase Max HP</div><div class="price">20</div><button data-buy="hp">Buy</button> <div>Increase Max Stamina</div><div class="price">18</div><button data-buy="sta">Buy</button> <div>Sharpen Weapon</div><div class="price">25</div><button data-buy="sharp">Buy</button> <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Keys</div> <div>Boss Key</div><div class="price">50</div><button data-buy="bosskey">Buy</button> <div>Chest Key</div><div class="price">10</div><button data-buy="chestkey">Buy</button> <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Arms</div> <div>Sword</div><div class="price">30</div><button data-buy="sword">Buy</button> <div>Spear</div><div class="price">30</div><button data-buy="spear">Buy</button> <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Boons</div> <div>Light of the Chapel</div><div class="price">50</div><button data-buy="light">Buy</button> </div> <div class="row" style="justify-content:space-between;margin-top:.9rem"> <div class="small">Souls: <span id="menuSouls">0</span></div> <div><button id="menuClose">Close (Esc)</button></div> </div> </div> </div> <div id="modalOverlay" aria-hidden="true"> <div class="modalCard" role="dialog" aria-modal="true"> <h3>Modal</h3> <p>This space is reserved for future L1 interactions.</p> <div class="row"><button id="modalClose">Close</button></div> </div> </div> <div id="death"><div class="text">YOU DIED</div></div> <div id="win"><div class="text">VICTORY</div></div> <script type="module"> /* Self-contained, CSP-safe. Fix for ctx.globalAlpha is not a function: - Replace any calls like ctx.globalAlpha(...) with assignments: ctx.globalAlpha = (...). - Balance temporary alpha changes with ctx.globalAlpha = 1. */ let W=96,H=64,T=8; let userZoom = null; const can=document.getElementById('c'),ctx=can.getContext('2d'); const $=id=>document.getElementById(id); const msg=$('msg'), newBtn=$('new'), logWrap=$('logWrap'), logToggle=$('logToggle'); const deathScr=$('death'), winScr=$('win'); const modalOverlay=$('modalOverlay'), modalClose=$('modalClose'); const hpFill=$('hpFill'), staFill=$('staFill'), hpText=$('hpText'), staText=$('staText'); const campMenuOverlay=$('campMenuOverlay'), menuGrid=$('menuGrid'), menuClose=$('menuClose'), menuSouls=$('menuSouls'), campMenuStatus=$('campMenuStatus'); const soulsText=$('soulsText'), weaponText=$('weaponText'), flaskText=$('flaskText'), bossKeyText=$('bossKeyText'), chestKeyText=$('chestKeyText');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dot Souls — L1: Fallen Chapel </title>
+<style>
+:root{--bg:#08090b;--fg:#ddd;--panel:#0d0f12;--line:#1c2129;--btn:#1a1f26;--btn2:#222834}
+html,body{height:100%;margin:0;background:radial-gradient(1200px 600px at 70% -10%, rgba(90,80,140,.16), transparent 60%),radial-gradient(900px 500px at 15% 0%, rgba(40,80,160,.14), transparent 55%),var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Arial,sans-serif}
+#ui{position:fixed;inset:0;display:grid;grid-template-columns:1fr minmax(300px,28vw);grid-template-rows:auto 1fr auto}
+#topbar{grid-column:1/-1;display:flex;align-items:center;gap:.7rem;border-bottom:1px solid var(--line);background:linear-gradient(to bottom, rgba(12,16,22,.6), rgba(12,16,22,.35) 50%, rgba(12,16,22,.6)),linear-gradient(to bottom, #0c1017, #0a0d13 40%, #0b0e14);padding:.5rem .75rem}
+#gameTitle{font-weight:700;letter-spacing:.02em}
+.small{font-size:.92rem}
+.bars{display:flex;gap:.6rem;align-items:center}
+.barWrap{display:flex;align-items:center;gap:.4rem;min-width:180px}
+.bar{position:relative;width:160px;height:14px;background:#161b24;border:1px solid #2a3342;border-radius:999px;overflow:hidden}
+.barFill{position:absolute;inset:0;width:50%;background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #2b8;transform-origin:left center;transition:width .12s ease}
+.bar.hp .barFill{background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #c33}
+.bar.sta .barFill{background:linear-gradient(180deg, rgba(255,255,255,.15), transparent), #3cb371}
+.barLabel{font-size:.88rem;opacity:.85}
+#left{display:grid;grid-template-rows:1fr auto;min-width:0;min-height:0;overflow:hidden;position:relative}
+/* refactored: wrap expanded and padded minimally so canvas gets more real estate */
+#wrap{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:4px 8px 0 8px}
+#c{image-rendering:pixelated;border:2px solid #2a3342;background:linear-gradient(#07090d,#070a10);max-width:100%;max-height:100%;box-shadow:0 10px 40px rgba(0,0,0,.55), inset 0 0 28px rgba(20,30,60,.35)}
+#bottombar{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-top:1px solid var(--line);background:#0c0f14}
+#bottombar .hint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem;opacity:.9}
+button{background:var(--btn);color:var(--fg);border:2px solid #344055;border-radius:10px;padding:.38rem .7rem;cursor:pointer;font-size:.9rem;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+button:hover{background:var(--btn2)}
+kbd{background:#222a33;border:1px solid #3b475a;border-radius:4px;padding:.05rem .3rem;font-size:.85rem}
+#panel{border-left:1px solid var(--line);background:linear-gradient(180deg, rgba(20,28,40,.65), rgba(12,16,24,.65)),#0d0f12;display:flex;flex-direction:column;min-width:300px;max-width:440px;overflow:auto}
+.section{padding:.75rem .9rem;border-bottom:1px solid var(--line)}
+.section h2{margin:.1rem 0 .5rem;font-size:1.05rem;color:#eef;display:flex;align-items:center;justify-content:space-between}
+#logWrap{overflow:hidden;max-height:12rem;transition:max-height .2s}
+#logWrap.hide{max-height:0}
+#msg{padding:.45rem .1rem .25rem .1rem;font-size:.95rem;white-space:normal;line-height:1.35;word-break:break-word}
+.inlineCanvas{image-rendering:pixelated}
+#modalOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:6}
+#modalOverlay.show{display:grid}
+.modalCard{background:#0b0f14;border:1px solid #2a3342;border-radius:12px;min-width:260px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.modalCard h3{margin:.2rem 0 .7rem}
+.row{display:flex;gap:.5rem;align-items:center;justify-content:flex-end;margin-top:.8rem}
+#death{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7;cursor:pointer}
+#death.show{display:flex}
+#death .text{font-size:10vw;color:#b00;text-shadow:0 0 18px rgba(255,0,0,.25);font-weight:900;letter-spacing:.15em}
+#win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:7}
+#win.show{display:flex}
+#win .text{font-size:7vw;color:#8f8;text-shadow:0 0 18px rgba(127,255,200,.25);font-weight:800;letter-spacing:.08em}
+.badge{display:inline-flex;align-items:center;gap:.45rem;background:#121827;border:1px solid #2b3750;color:#cfe7ff;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;letter-spacing:.03em}
+.badgeDot{width:.6rem;height:.6rem;border-radius:50%;background:conic-gradient(from 0deg, #6bc1ff, #c870ff, #ff8d6b, #ffd36b, #6bc1ff);box-shadow:0 0 8px rgba(120,160,255,.35)}
+.badgeLine{width:1px;height:12px;background:#2b3750}
+#campMenuOverlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:8}
+#campMenuOverlay.show{display:grid}
+.menuCard{background:#0b0f14;border:1px solid #2a3342;border-radius:12px;min-width:280px;max-width:min(92vw,560px);padding:1rem;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.menuCard h3{margin:.2rem 0 .6rem}
+.menuGrid{display:grid;grid-template-columns:1fr auto auto;gap:.4rem .6rem;align-items:center}
+.price{color:#ffef6b}
+.disabled{opacity:.45;filter:grayscale(.6)}
+.pill{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .55rem;border-radius:999px;border:1px solid #2a3342;background:#0e1320;font-size:.8rem}
+.pill .dot{width:.5rem;height:.5rem;border-radius:50%;background:#6df;box-shadow:0 0 6px rgba(100,220,255,.35)}
+#soulsText{color:#ffef6b}
+#flaskText{color:#9fdc8a}
+@media (max-width:900px){
+  #ui{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+  #panel{grid-row:3;border-left:none;border-top:1px solid var(--line);max-width:none}
+  #left{grid-row:2}
+  #bottombar{grid-row:4}
+  #logWrap{max-height:0}
+  #death .text{font-size:16vw}
+  #win .text{font-size:12vw}
+}
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="topbar">
+    <div><div id="gameTitle">Dot Souls</div><div id="levelName" class="small" style="opacity:.8">Level 1 — The Fallen Chapel</div></div>
+    <div class="bars" aria-label="Player vital bars">
+      <div class="barWrap"><span class="barLabel">HP</span><div class="bar hp"><div id="hpFill" class="barFill" style="width:50%"></div></div><span class="small" id="hpText">0/0</span></div>
+      <div class="barWrap"><span class="barLabel">Stamina</span><div class="bar sta"><div id="staFill" class="barFill" style="width:50%"></div></div><span class="small" id="staText">0/0</span></div>
+    </div>
+    <div class="pill" title="Souls carried"><span class="dot"></span><span>Souls:</span><span id="soulsText">0</span></div>
+    <div class="pill" title="Equipped weapon"><span class="dot" style="background:#c6f"></span><span>Weapon:</span><span id="weaponText">Dagger</span></div>
+    <div class="pill" title="Flasks available"><span class="dot" style="background:#9fdc8a"></span><span>Flasks:</span><span id="flaskText">0/0</span></div><div class="pill" title="Boss Key"><span class="dot" style="background:#ffd36b"></span><span>Key:</span><span id="bossKeyText">—</span></div>
+    <div class="pill" title="Chest Keys"><span class="dot" style="background:#ffab3b"></span><span>Chest Key:</span><span id="chestKeyText">0</span></div>
+    <div style="flex:1"></div>
+  </div>
+  <div id="left">
+    <div id="wrap"><canvas id="c" width="512" height="384" role="img" aria-label="Level 1: The Fallen Chapel"></canvas></div>
+    <div id="bottombar">
+      <div class="hint">Arrows/WASD move • . wait • Space swing • &gt; descend • H heal • L camp menu • R/N reset • M toggle log</div>
+      <button id="new">Reset Level 1</button>
+    </div>
+  </div>
+  <div id="panel">
+    <div id="events" class="section" style="border-bottom:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem">
+        <h2 style="margin:0">Events</h2><button id="logToggle">Collapse</button>
+      </div>
+      <div id="logWrap"><div id="msg"></div></div>
+    </div>
+  </div>
+</div>
+<div id="campMenuOverlay" aria-hidden="true">
+  <div class="menuCard" role="dialog" aria-modal="true">
+    <h3>Camp Menu</h3>
+    <div class="small" id="campMenuStatus" style="margin-bottom:.6rem;opacity:.8"></div>
+    <div id="menuGrid" class="menuGrid">
+      <div class="hdr" style="grid-column:1/-1;opacity:.9;margin:.2rem 0">Upgrades</div>
+      <div>Increase Max HP</div><div class="price">20</div><button data-buy="hp">Buy</button>
+      <div>Increase Max Stamina</div><div class="price">18</div><button data-buy="sta">Buy</button>
+      <div>Sharpen Weapon</div><div class="price">25</div><button data-buy="sharp">Buy</button>
+      <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Keys</div>
+      <div>Boss Key</div><div class="price">50</div><button data-buy="bosskey">Buy</button>
+      <div>Chest Key</div><div class="price">10</div><button data-buy="chestkey">Buy</button>
+      <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Arms</div>
+      <div>Sword</div><div class="price">30</div><button data-buy="sword">Buy</button>
+      <div>Spear</div><div class="price">30</div><button data-buy="spear">Buy</button>
+      <div class="hdr" style="grid-column:1/-1;opacity:.9;margin-top:.6rem">Boons</div>
+      <div>Light of the Chapel</div><div class="price">50</div><button data-buy="light">Buy</button>
+    </div>
+    <div class="row" style="justify-content:space-between;margin-top:.9rem">
+      <div class="small">Souls: <span id="menuSouls">0</span></div>
+      <div><button id="menuClose">Close (Esc)</button></div>
+    </div>
+  </div>
+</div>
+<div id="modalOverlay" aria-hidden="true">
+  <div class="modalCard" role="dialog" aria-modal="true">
+    <h3>Modal</h3>
+    <p>This space is reserved for future L1 interactions.</p>
+    <div class="row"><button id="modalClose">Close</button></div>
+  </div>
+</div>
+<div id="death"><div class="text">YOU DIED</div></div>
+<div id="win"><div class="text">VICTORY</div></div>
+<script type="module">
+/*
+Self-contained, CSP-safe. Fix for ctx.globalAlpha is not a function:
+- Replace any calls like ctx.globalAlpha(...) with assignments: ctx.globalAlpha = (...).
+- Balance temporary alpha changes with ctx.globalAlpha = 1.
+*/
+let W=96,H=64,T=8;
+let userZoom = null;
+const can=document.getElementById('c'),ctx=can.getContext('2d');
+const $=id=>document.getElementById(id);
+const msg=$('msg'), newBtn=$('new'), logWrap=$('logWrap'), logToggle=$('logToggle');
+const deathScr=$('death'), winScr=$('win');
+const modalOverlay=$('modalOverlay'), modalClose=$('modalClose');
+const hpFill=$('hpFill'), staFill=$('staFill'), hpText=$('hpText'), staText=$('staText');
+const campMenuOverlay=$('campMenuOverlay'), menuGrid=$('menuGrid'), menuClose=$('menuClose'), menuSouls=$('menuSouls'), campMenuStatus=$('campMenuStatus');
+const soulsText=$('soulsText'), weaponText=$('weaponText'), flaskText=$('flaskText'), bossKeyText=$('bossKeyText'), chestKeyText=$('chestKeyText');
+
 function setMenuOpen(f){campMenuOverlay.classList.toggle('show',!!f); if(f){ if(canUseCampMenu()){restAtCamp(state.px,state.py);} updateMenuUI();}}
 function canUseCampMenu(){return state.map[state.py*W+state.px]===TILE.camp&&!state.dead&&!state.won}
 function updateMenuUI(){
-if(!state) return;
-menuSouls.textContent=state.souls;
-campMenuStatus.textContent=canUseCampMenu()?'You are resting at a campfire.':'You must stand on a campfire to trade.';
-for(const b of menuGrid.querySelectorAll('button[data-buy]')){
-const key=b.dataset.buy,cost=prices[key];
-let ok=canUseCampMenu()&&state.souls>=cost; if(key==='bosskey'&&state.hasBossKey) ok=false;
-if(key==='sword'&&state.weapon.name==='Sword') ok=false;
-if(key==='spear'&&state.weapon.name==='Spear') ok=false;
-if(key==='sharp'&&state.weapon.melee>=5) ok=false;
-if(key==='light'&&state.boons.light) ok=false;
-b.disabled=!ok;b.classList.toggle('disabled',!ok);
-b.title=canUseCampMenu()?Cost ${cost} souls:'Stand on a campfire to use the menu';
-}
+  if(!state) return;
+  menuSouls.textContent=state.souls;
+  campMenuStatus.textContent=canUseCampMenu()?'You are resting at a campfire.':'You must stand on a campfire to trade.';
+  for(const b of menuGrid.querySelectorAll('button[data-buy]')){
+    const key=b.dataset.buy,cost=prices[key];
+    let ok=canUseCampMenu()&&state.souls>=cost; if(key==='bosskey'&&state.hasBossKey) ok=false;
+    if(key==='sword'&&state.weapon.name==='Sword') ok=false;
+    if(key==='spear'&&state.weapon.name==='Spear') ok=false;
+    if(key==='sharp'&&state.weapon.melee>=5) ok=false;
+    if(key==='light'&&state.boons.light) ok=false;
+    b.disabled=!ok;b.classList.toggle('disabled',!ok);
+    b.title=canUseCampMenu()?`Cost ${cost} souls`:'Stand on a campfire to use the menu';
+  }
 }
 menuClose.onclick=()=>setMenuOpen(false);
 campMenuOverlay.addEventListener('click',e=>{if(e.target===campMenuOverlay) setMenuOpen(false)});
 menuGrid.addEventListener('click',e=>{
-const btn=e.target.closest('button[data-buy]'); if(!btn) return;
-if(!canUseCampMenu()){nmsg('You must be at a camp to trade.','#aaa');updateMenuUI();return}
-const key=btn.dataset.buy,cost=prices[key];
-if(state.souls<cost){nmsg('Not enough souls.','#aaa');updateMenuUI();return}
-if(key==='hp'){if(spend(cost)){state.hpmax+=2;state.hp=state.hpmax;nmsg('Max HP +2','#6df')}}
-else if(key==='sta'){if(spend(cost)){state.stamax+=2;state.sta=state.stamax;nmsg('Max Stamina +2','#6df')}}
-else if(key==='sharp'){if(state.weapon.melee>=5){nmsg('Your weapon is honed enough.','#aaa')}else if(spend(cost)){state.weapon.melee+=1;nmsg('Weapon sharpened (+1 damage)','#6df')}}
-else if(key==='sword'){if(spend(cost)){equipWeapon('sword')}}
-else if(key==='spear'){if(spend(cost)){equipWeapon('spear')}}
-else if(key==='light'){
-if(spend(cost)){
-state.boons.light=true; nmsg('You feel the chapel’s light follow you.','#ff9'); dirtyFOV=true;
-}
-} else if(key==='bosskey'){
-if(spend(cost)){state.hasBossKey=true;nmsg('You obtained the boss key.','#ffd36b')}
-}
-else if(key==='chestkey'){
-if(spend(cost)){state.chestKeys=(state.chestKeys||0)+1;nmsg('You obtained a chest key.','#ffd36b')}
-}
-updateHud();updateMenuUI();
+  const btn=e.target.closest('button[data-buy]'); if(!btn) return;
+  if(!canUseCampMenu()){nmsg('You must be at a camp to trade.','#aaa');updateMenuUI();return}
+  const key=btn.dataset.buy,cost=prices[key];
+  if(state.souls<cost){nmsg('Not enough souls.','#aaa');updateMenuUI();return}
+  if(key==='hp'){if(spend(cost)){state.hpmax+=2;state.hp=state.hpmax;nmsg('Max HP +2','#6df')}}
+  else if(key==='sta'){if(spend(cost)){state.stamax+=2;state.sta=state.stamax;nmsg('Max Stamina +2','#6df')}}
+  else if(key==='sharp'){if(state.weapon.melee>=5){nmsg('Your weapon is honed enough.','#aaa')}else if(spend(cost)){state.weapon.melee+=1;nmsg('Weapon sharpened (+1 damage)','#6df')}}
+  else if(key==='sword'){if(spend(cost)){equipWeapon('sword')}}
+  else if(key==='spear'){if(spend(cost)){equipWeapon('spear')}}
+  else if(key==='light'){
+    if(spend(cost)){
+      state.boons.light=true; nmsg('You feel the chapel’s light follow you.','#ff9'); dirtyFOV=true;
+    }
+  } else if(key==='bosskey'){
+    if(spend(cost)){state.hasBossKey=true;nmsg('You obtained the boss key.','#ffd36b')}
+  }
+  else if(key==='chestkey'){
+    if(spend(cost)){state.chestKeys=(state.chestKeys||0)+1;nmsg('You obtained a chest key.','#ffd36b')}
+  }
+  updateHud();updateMenuUI();
 });
 
 let seedv=Date.now()|0;
-function rnd(){seedv=(seedv1664525+1013904223)|0;return(seedv>>>0)/4294967296}
-function rni(a,b){return a+Math.floor(rnd()(b-a+1))}
+function rnd(){seedv=(seedv*1664525+1013904223)|0;return(seedv>>>0)/4294967296}
+function rni(a,b){return a+Math.floor(rnd()*(b-a+1))}
 
 function makeSpriteN(sz,fn){
-const s=document.createElement('canvas');s.width=s.height=sz;
-const g=s.getContext('2d'),img=g.createImageData(sz,sz);
-for(let y=0;y<sz;y++)for(let x=0;x<sz;x++){
-const col=fn(x,y);const r=col[0],gc=col[1],bc=col[2],a=(col.length>3?col[3]:255);
-const i=(y*sz+x)*4;img.data[i]=r;img.data[i+1]=gc;img.data[i+2]=bc;img.data[i+3]=a
-}
-g.putImageData(img,0,0);return s
+  const s=document.createElement('canvas');s.width=s.height=sz;
+  const g=s.getContext('2d'),img=g.createImageData(sz,sz);
+  for(let y=0;y<sz;y++)for(let x=0;x<sz;x++){
+    const col=fn(x,y);const r=col[0],gc=col[1],bc=col[2],a=(col.length>3?col[3]:255);
+    const i=(y*sz+x)*4;img.data[i]=r;img.data[i+1]=gc;img.data[i+2]=bc;img.data[i+3]=a
+  }
+  g.putImageData(img,0,0);return s
 }
 const makeSprite=(fn)=>makeSpriteN(8,fn),makeSprite16=(fn)=>makeSpriteN(16,fn);
 
@@ -61,43 +212,43 @@ function hex(r,g,b){return'#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
 function shade(h,d){const s=h.replace('#','');const n=parseInt(s,16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;const clamp=v=>Math.max(0,Math.min(255,v));r=clamp(r+d);g=clamp(g+d);b=clamp(b+d);return'#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
 function parseHex(h){const s=h.replace('#','');const n=parseInt(s,16);return{r:(n>>16)&255,g:(n>>8)&255,b:n&255}}
 function palette(){
-const baseFloor='#12161a', baseWall='#232b37';
-const w=parseHex(baseWall), f=parseHex(baseFloor);
-const bevelLight=hex((w.r0.82+2550.18)|0,(w.g0.82+2550.18)|0,(w.b0.82+2550.18)|0);
-const bevelDark=hex((w.r*.5)|0,(w.g*.5)|0,(w.b*.5)|0);
-const shadow=hex((f.r*.58)|0,(f.g*.58)|0,(f.b*.58)|0);
-const shadowHC=hex((f.r*.42)|0,(f.g*.42)|0,(f.b*.42)|0);
-return{wall:baseWall,floor:highContrast?shade(baseFloor,-8):baseFloor,floorHC:shade(baseFloor,-12),tileSeen:.28,bevelLight,bevelDark,shadow,shadowHC,hitFill:colorblind?'rgba(0,255,255,.35)':'rgba(255,64,64,.45)',overlay:colorblind?'#0ff':'#fff',miss:'#aaa',gold:'#ffef6b',info:'#8bd5ff',fogDark:'rgba(0,0,0,0.92)',fogSoft:'rgba(0,0,0,0.48)',campGlow:'rgba(255,180,60,0.18)'}
+  const baseFloor='#12161a', baseWall='#232b37';
+  const w=parseHex(baseWall), f=parseHex(baseFloor);
+  const bevelLight=hex((w.r*0.82+255*0.18)|0,(w.g*0.82+255*0.18)|0,(w.b*0.82+255*0.18)|0);
+  const bevelDark=hex((w.r*.5)|0,(w.g*.5)|0,(w.b*.5)|0);
+  const shadow=hex((f.r*.58)|0,(f.g*.58)|0,(f.b*.58)|0);
+  const shadowHC=hex((f.r*.42)|0,(f.g*.42)|0,(f.b*.42)|0);
+  return{wall:baseWall,floor:highContrast?shade(baseFloor,-8):baseFloor,floorHC:shade(baseFloor,-12),tileSeen:.28,bevelLight,bevelDark,shadow,shadowHC,hitFill:colorblind?'rgba(0,255,255,.35)':'rgba(255,64,64,.45)',overlay:colorblind?'#0ff':'#fff',miss:'#aaa',gold:'#ffef6b',info:'#8bd5ff',fogDark:'rgba(0,0,0,0.92)',fogSoft:'rgba(0,0,0,0.48)',campGlow:'rgba(255,180,60,0.18)'}
 }
 function circle(x,y,cx,cy,r){return Math.hypot(x-cx,y-cy)<=r}
 
 const spr={
-player:makeSprite16((x,y)=>{const cx=8,cy=9;let r=40,g=46,b=64,a=255;
-if(circle(x,y,cx,cy,6)){r=46;g=54;b=74}
-if(circle(x,y,cx,cy-4,5)){r=30;g=34;b=48}
-if(circle(x,y,cx,cy-1,3)){r=18;g=18;b=22}
-if((x===cx-2||x===cx+2)&&y===cy-1){r=240;g=250;b=255}
-if(y===cy+2&&Math.abs(x-cx)<=3){r=90;g=70;b=35}
-if(circle(x,y,cx+4,cy+2,1.5)){r=200;g=170;b=120}
-return[r,g,b,a]}),
-ember:makeSprite((x,y)=>{const d=Math.hypot(x-3.5,y-3.5);let r=255,g=180,b=60,a=0;if(d<1.8){a=255}else if(d<3){a=140}else if(d<3.5){a=70}return[r,g,b,a]}),
-slime:makeSprite((x,y)=>[60,210-((x+y)%3)25,100-((x2+y)%4)*8,255]),
-cultist:makeSprite((x,y)=>{let r=110,g=66,b=150,a=255;if(((x+y)&1)==0){r+=12;g+=8;b+=8}return[r,g,b,a]}),
-stair:makeSprite16((x,y)=>{let r=200,g=200,b=170,a=255;const bands=[3,6,9,12];if(bands.includes(y)){r=220;g=220;b=190}if((x==0||y==0||x==15||y==15)) a=0;return[r,g,b,a]}),
-souls:makeSprite((x,y)=>[245-((x+y)&1)*20,220,40,255]),
-dagger:makeSprite((x,y)=>[200-((x+y)%2)*30,200,200,255]),
-sword:makeSprite((x,y)=>[230-((x+y)%2)*15,230-((x+y)%2)15,250,255]),
-spear:makeSprite((x,y)=>[210,210,230,255]),
-boss16:makeSprite16((x,y)=>{const cx=8,cy=8;const d=Math.hypot(x-cx,y-cy);let r=90,g=60,b=140,a=255;
-if(d<6){r=140+((xy)&7);g=80+((x+y)&7);b=200-((x+y)&5)}
-if((x>6&&x<10&&y>2&&y<4)||(x>6&&x<10&&y>12&&y<14)){r=220;g=50;b=60}
-if((x==0||y==0||x==15||y==15)) a=0;return[r,g,b,a]}),
-bossShock:makeSprite16((x,y)=>{const s=(x^y)&1;return[255,200,40,s?220:60]}),
-camp:makeSprite((x,y)=>{const cx=3.5,cy=3.5,d=Math.hypot(x-cx,y-cy);let r=255,g=160,b=60,a=255;
-if(d>2.6){r=200;g=90;b=40;a=220}
-if(d>3.2){r=120;g=70;b=40;a=160}
-if(((x+y)&1)==0) g+=20;return[r,g,b,a]}),
-bloodstain:makeSprite((x,y)=>{const cx=3.5,cy=3.5,d=Math.hypot(x-cx,y-cy);let r=150,g=20,b=30,a=235;if(d<2.2){r=180;g=24;b=36;a=245}if(((x^y)&1)==0){r+=10}return[r,g,b,a]} )
+  player:makeSprite16((x,y)=>{const cx=8,cy=9;let r=40,g=46,b=64,a=255;
+    if(circle(x,y,cx,cy,6)){r=46;g=54;b=74}
+    if(circle(x,y,cx,cy-4,5)){r=30;g=34;b=48}
+    if(circle(x,y,cx,cy-1,3)){r=18;g=18;b=22}
+    if((x===cx-2||x===cx+2)&&y===cy-1){r=240;g=250;b=255}
+    if(y===cy+2&&Math.abs(x-cx)<=3){r=90;g=70;b=35}
+    if(circle(x,y,cx+4,cy+2,1.5)){r=200;g=170;b=120}
+    return[r,g,b,a]}),
+  ember:makeSprite((x,y)=>{const d=Math.hypot(x-3.5,y-3.5);let r=255,g=180,b=60,a=0;if(d<1.8){a=255}else if(d<3){a=140}else if(d<3.5){a=70}return[r,g,b,a]}),
+  slime:makeSprite((x,y)=>[60,210-((x+y)%3)*25,100-((x*2+y)%4)*8,255]),
+  cultist:makeSprite((x,y)=>{let r=110,g=66,b=150,a=255;if(((x+y)&1)==0){r+=12;g+=8;b+=8}return[r,g,b,a]}),
+  stair:makeSprite16((x,y)=>{let r=200,g=200,b=170,a=255;const bands=[3,6,9,12];if(bands.includes(y)){r=220;g=220;b=190}if((x==0||y==0||x==15||y==15)) a=0;return[r,g,b,a]}),
+  souls:makeSprite((x,y)=>[245-((x+y)&1)*20,220,40,255]),
+  dagger:makeSprite((x,y)=>[200-((x+y)%2)*30,200,200,255]),
+  sword:makeSprite((x,y)=>[230-((x+y)%2)*15,230-((x+y)%2)*15,250,255]),
+  spear:makeSprite((x,y)=>[210,210,230,255]),
+  boss16:makeSprite16((x,y)=>{const cx=8,cy=8;const d=Math.hypot(x-cx,y-cy);let r=90,g=60,b=140,a=255;
+    if(d<6){r=140+((x*y)&7);g=80+((x+y)&7);b=200-((x+y)&5)}
+    if((x>6&&x<10&&y>2&&y<4)||(x>6&&x<10&&y>12&&y<14)){r=220;g=50;b=60}
+    if((x==0||y==0||x==15||y==15)) a=0;return[r,g,b,a]}),
+  bossShock:makeSprite16((x,y)=>{const s=(x^y)&1;return[255,200,40,s?220:60]}),
+  camp:makeSprite((x,y)=>{const cx=3.5,cy=3.5,d=Math.hypot(x-cx,y-cy);let r=255,g=160,b=60,a=255;
+    if(d>2.6){r=200;g=90;b=40;a=220}
+    if(d>3.2){r=120;g=70;b=40;a=160}
+    if(((x+y)&1)==0) g+=20;return[r,g,b,a]}),
+  bloodstain:makeSprite((x,y)=>{const cx=3.5,cy=3.5,d=Math.hypot(x-cx,y-cy);let r=150,g=20,b=30,a=235;if(d<2.2){r=180;g=24;b=36;a=245}if(((x^y)&1)==0){r+=10}return[r,g,b,a]} )
 };
 
 const TILE={floor:0,wall:1,stair:3,camp:5,fog:6,bossGate:7};
@@ -110,797 +261,785 @@ let state,deco;
 let bossDoorCells = []; // (unused placeholder, kept for compatibility if needed
 // removed isBossGate
 
-function nmsg(t,c){const col=c||'#9f9';messages.unshift({t,c:col});messages=messages.slice(0,6);msg.innerHTML=messages.slice().reverse().map(m=><span style="color:${m.c}">${m.t}</span>).join('<br>')}
+function nmsg(t,c){const col=c||'#9f9';messages.unshift({t,c:col});messages=messages.slice(0,6);msg.innerHTML=messages.slice().reverse().map(m=>`<span style="color:${m.c}">${m.t}</span>`).join('<br>')}
 function floatAt(x,y,text,c){anims.floaters.push({x,y,text,c,t:12})}
 function trail(x0,y0,x1,y1){anims.trails.push({x0,y0,x1,y1,t:6})}
 function nudge(e,dx,dy){anims.move.push({e,dx,dy,t:2})}
 function clearNudges(){anims.move=anims.move.filter(m=>m.e===state)}
 
 function los(x0,y0,x1,y1,block){
-let dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,err=dx+dy,x=x0,y=y0;
-while(true){
-if(!(x==x0&&y==y0)&&(block(x,y)))return false;
-if(x==x1&&y==y1)break;
-let e2=2err;if(e2>=dy){err+=dy;x+=sx}if(e2<=dx){err+=dx;y+=sy}
-}return true
+  let dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,err=dx+dy,x=x0,y=y0;
+  while(true){
+    if(!(x==x0&&y==y0)&&(block(x,y)))return false;
+    if(x==x1&&y==y1)break;
+    let e2=2*err;if(e2>=dy){err+=dy;x+=sx}if(e2<=dx){err+=dx;y+=sy}
+  }return true
 }
 function computeFOV(){
-if(!state) return;
-if(!state.map) return;
-if(!state.boons) state.boons={light:false};
-if(!state.blockSight){
-state.blockSight=new Uint8Array(WH);
-for(let i=0;i<WH;i++){
-const t=state.map[i];
-state.blockSight[i]=(t===TILE.wall||t===TILE.fog)?1:0;
-}
-}
-if(!visible) visible=new Uint8Array(WH).fill(0);
-if(!floorSeen) floorSeen=new Uint8Array(WH).fill(0);
-if(state.boons.light){
-// Light of the Chapel (global) reveals entire map
-visible.fill(1);
-floorSeen.fill(1);
-return;
-}
-visible.fill(0);
-const R=12;
-for(let y=Math.max(0,state.py-R);y<=Math.min(H-1,state.py+R);y++)
-for(let x=Math.max(0,state.px-R);x<=Math.min(W-1,state.px+R);x++){
-if(los(state.px,state.py,x,y,(ix,iy)=>state.blockSight[iyW+ix])&&Math.hypot(x-state.px,y-state.py)<=R){
-const i=yW+x;visible[i]=1;if(!floorSeen[i]){newSeenHalo.push({x,y,t:10})}floorSeen[i]=1
-}
-}
+  if(!state) return;
+  if(!state.map) return;
+  if(!state.boons) state.boons={light:false};
+  if(!state.blockSight){
+    state.blockSight=new Uint8Array(W*H);
+    for(let i=0;i<W*H;i++){
+      const t=state.map[i];
+      state.blockSight[i]=(t===TILE.wall||t===TILE.fog)?1:0;
+    }
+  }
+  if(!visible) visible=new Uint8Array(W*H).fill(0);
+  if(!floorSeen) floorSeen=new Uint8Array(W*H).fill(0);
+  if(state.boons.light){
+    // Light of the Chapel (global) reveals entire map
+    visible.fill(1);
+    floorSeen.fill(1);
+    return;
+  }
+  visible.fill(0);
+  const R=12;
+  for(let y=Math.max(0,state.py-R);y<=Math.min(H-1,state.py+R);y++)
+    for(let x=Math.max(0,state.px-R);x<=Math.min(W-1,state.px+R);x++){
+      if(los(state.px,state.py,x,y,(ix,iy)=>state.blockSight[iy*W+ix])&&Math.hypot(x-state.px,y-state.py)<=R){
+        const i=y*W+x;visible[i]=1;if(!floorSeen[i]){newSeenHalo.push({x,y,t:10})}floorSeen[i]=1
+      }
+    }
 }
 function recalcFOV(force){
-if(force) dirtyFOV=true;
-if(dirtyFOV){
-computeFOV();
-dirtyFOV=false;
+  if(force) dirtyFOV=true;
+  if(dirtyFOV){
+    computeFOV();
+    dirtyFOV=false;
+  }
 }
-}
-function emptyMap(){return new Uint8Array(WH).fill(TILE.wall)}
-function setTile(map,x,y,t){if(x>=0&&y>=0&&x<W&&y<H) map[yW+x]=t}
+function emptyMap(){return new Uint8Array(W*H).fill(TILE.wall)}
+function setTile(map,x,y,t){if(x>=0&&y>=0&&x<W&&y<H) map[y*W+x]=t}
 function box(map,x,y,w,h,t){for(let j=y;j<y+h;j++)for(let i=x;i<w+x;i++) setTile(map,i,j,t)}
 function rect(map,x,y,w,h,t){for(let i=x;i<x+w;i++){setTile(map,i,y,t);setTile(map,i,y+h-1,t)}for(let j=y;j<y+h;j++){setTile(map,x,j,t);setTile(map,x+w-1,j,t)}}
-function nearestFloor(map,tx,ty,maxR=8){for(let r=0;r<=maxR;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=tx+dx,y=ty+dy;if(x<0||y<0||x>=W||y>=H) continue;if(map[yW+x]===TILE.floor) return{x,y}}return{x:tx,y:ty}}
+function nearestFloor(map,tx,ty,maxR=8){for(let r=0;r<=maxR;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=tx+dx,y=ty+dy;if(x<0||y<0||x>=W||y>=H) continue;if(map[y*W+x]===TILE.floor) return{x,y}}return{x:tx,y:ty}}
 function makeGate(map,x,y,len,vert=true){for(let i=0;i<len;i++){const gx=x+(vert?0:i),gy=y+(vert?i:0);setTile(map,gx,gy,TILE.fog)}}
 
 function buildBossArena(L){
-const aw=22, ah=16;
-const corridorHeight=3;
-// boss arena below chapel, connected by corridor from chapel bottom-center
-const chapel = L.chapelRect; // must exist
-const doorXChapel = chapel.x + Math.floor(chapel.w/2);
-const chapelBottom = chapel.y + chapel.h - 1;
-// place locked boss door at bottom center of chapel (requires key to open)
-setTile(L.map, doorXChapel, chapelBottom, TILE.bossGate);
-L.bossDoor = {x:doorXChapel,y:chapelBottom};
-// build corridor down from chapel to boss arena top
-const corridorStartY = chapelBottom + 1;
-for(let y=corridorStartY; y< corridorStartY + corridorHeight; y++){
-setTile(L.map, doorXChapel, y, TILE.floor);
-}
-// place boss arena below corridor
-const ax = Math.floor(chapel.x + (chapel.w - aw) / 2);
-const ay = corridorStartY + corridorHeight; // top of boss arena
+  const aw=22, ah=16;
+  const corridorHeight=3;
+  // boss arena below chapel, connected by corridor from chapel bottom-center
+  const chapel = L.chapelRect; // must exist
+  const doorXChapel = chapel.x + Math.floor(chapel.w/2);
+  const chapelBottom = chapel.y + chapel.h - 1;
+  // place locked boss door at bottom center of chapel (requires key to open)
+  setTile(L.map, doorXChapel, chapelBottom, TILE.bossGate);
+  L.bossDoor = {x:doorXChapel,y:chapelBottom};
+  // build corridor down from chapel to boss arena top
+  const corridorStartY = chapelBottom + 1;
+  for(let y=corridorStartY; y< corridorStartY + corridorHeight; y++){
+    setTile(L.map, doorXChapel, y, TILE.floor);
+  }
+  // place boss arena below corridor
+  const ax = Math.floor(chapel.x + (chapel.w - aw)/2);
+  const ay = corridorStartY + corridorHeight; // top of boss arena
+  rect(L.map, ax, ay, aw, ah, TILE.wall);
+  box(L.map, ax+1, ay+1, aw-2, ah-2, TILE.floor);
+  // create gap in top center of boss arena so corridor feeds into it
+  const gateX = ax + Math.floor(aw/2);
+  setTile(L.map, gateX, ay, TILE.floor); // gap in top wall
+  // boss entry point just inside the arena
+  L.bossEntry = { x: gateX, y: ay+1 };
+  // boss arena is open; boss sits at the back (bottom center)
+  const bossBack = { x: ax+Math.floor(aw/2), y: ay+ah-2 };
+  L.mons.push({x:bossBack.x, y:bossBack.y, t:'boss', name:'Chapel Warden',hp:60,atk:5,def:1,phase:1,cool:0,enraged:false,awakened:false});
 
-rect(L.map, ax, ay, aw, ah, TILE.wall);
-box(L.map, ax + 1, ay + 1, aw - 2, ah - 2, TILE.floor);
-
-// create gap in top center of boss arena so corridor feeds into it
-const gateX = ax + Math.floor(aw / 2);
-setTile(L.map, gateX, ay, TILE.floor); // gap in top wall
-
-// boss entry point just inside the arena
-L.bossEntry = { x: gateX, y: ay + 1 };
-
-// boss arena is open; boss sits at the back (bottom center)
-const bossBack = { x: ax + Math.floor(aw / 2), y: ay + ah - 2 };
-
-// ADD BOSS (once) WITH dropWeapon
-L.mons.push({
-x: bossBack.x, y: bossBack.y,
-t: 'boss', name: 'Chapel Warden',
-hp: 60, atk: 5, def: 1,
-phase: 1, cool: 0, enraged: false, awakened: false,
-dropWeapon: 'longsword'
-});
-
-// store boss room center for possible use
-L.bossRoom = { x: ax + Math.floor(aw / 2), y: ay + Math.floor(ah / 2) };
-L.bossArenaRect = { x: ax, y: ay, w: aw, h: ah };
-
-// place stair in boss arena near far side (right)
-setTile(L.map, ax + Math.floor(aw / 2) + 2, ay + ah - 2, TILE.stair);
-// stair moved to back-right behind boss
-setTile(L.map, ax+Math.floor(aw/2)+2, ay+ah-2, TILE.stair);
+  // store boss room center for possible use
+  L.bossRoom={x: ax+Math.floor(aw/2), y: ay+Math.floor(ah/2)};
+  L.bossArenaRect = {x: ax, y: ay, w: aw, h: ah};
+  // place stair in boss arena near far side (right)
+  // stair moved to back-right behind boss
+  setTile(L.map, ax+Math.floor(aw/2)+2, ay+ah-2, TILE.stair);
 }
 function buildLevel1(){
-const L={map:new Uint8Array(WH).fill(TILE.floor),items:[],mons:[],px:8,py:Math.floor(H/2),stairs:{x:W-10,y:Math.floor(H/2)},camps:[],gateCells:[],bossRoom:null};
-deco=new Uint8Array(WH).fill(DEC.none);
-// Expanded chapel core that doesn't isolate the rest of the map; floor surrounds it so the entire canvas is playable
-const chapelW=Math.min(80,W-10), chapelH=24;
-const cx=Math.floor((W-chapelW)/2), cy=4;
-L.chapelRect = {x:cx,y:cy,w:chapelW,h:chapelH};
-// Chapel perimeter walls and interior
-rect(L.map,cx,cy,chapelW,chapelH,TILE.wall);
-box(L.map,cx+1,cy+1,chapelW-2,chapelH-2,TILE.floor);
-// Internal structural walls
-for(let y=cy+4;y<cy+chapelH-4;y+=5){
-for(let x=cx+6;x<cx+chapelW-6;x+=7){
-setTile(L.map,x,y,TILE.wall);
-}
-}
-// Banners on the sides
-for(let y=cy+3;y<cy+chapelH-3;y+=6){
-deco[yW+(cx+2)]=DEC.banner;
-deco[yW+(cx+chapelW-3)]=DEC.banner;
-}
-// Pews
-for(let y=cy+5;y<cy+chapelH-5;y+=5){
-for(let x=cx+4;x<cx+chapelW-4;x+=3){
-if(L.map[yW+x]===TILE.floor) deco[yW+x]=DEC.pew;
-}
-}
-// Glass decorations
-for(let y=cy+3;y<cy+chapelH-3;y+=8){
-deco[yW+(cx+Math.floor(chapelW0.7))]=DEC.glass;
-}
-// Altar
-deco[(cy+Math.floor(chapelH/2))W+(cx+Math.floor(chapelW0.6))]=DEC.altar;
-// Camps
-const startCamp={x:cx+3,y:cy+3};
-setTile(L.map,startCamp.x,startCamp.y,TILE.camp);L.camps.push(startCamp);
-const midCamp={x:cx+Math.floor(chapelW/2),y:cy+Math.floor(chapelH/2)};
-setTile(L.map,midCamp.x,midCamp.y,TILE.camp);L.camps.push(midCamp);
-// Enemies distributed inside chapel
-L.mons.push({x:cx+10,y:cy+8,t:'slime',hp:9,atk:2,def:0});
-L.mons.push({x:cx+14,y:cy+20,t:'slime',hp:9,atk:2,def:0});
-L.mons.push({x:cx+22,y:cy+15,t:'slime',hp:9,atk:2,def:0});
-L.mons.push({x:cx+28,y:cy+28,t:'slime',hp:9,atk:2,def:0});
-L.mons.push({x:cx+36,y:cy+12,t:'cultist',hp:7,atk:3,def:1});
-L.mons.push({x:cx+40,y:cy+18,t:'cultist',hp:7,atk:3,def:1});
-L.mons.push({x:cx+48,y:cy+24,t:'cultist',hp:7,atk:3,def:1});
-buildBossArena(L);
+  const L={map:new Uint8Array(W*H).fill(TILE.floor),items:[],mons:[],px:8,py:Math.floor(H/2),stairs:{x:W-10,y:Math.floor(H/2)},camps:[],gateCells:[],bossRoom:null};
+  deco=new Uint8Array(W*H).fill(DEC.none);
+  // Expanded chapel core that doesn't isolate the rest of the map; floor surrounds it so the entire canvas is playable
+  const chapelW=Math.min(80,W-10), chapelH=24;
+  const cx=Math.floor((W-chapelW)/2), cy=4;
+  L.chapelRect = {x:cx,y:cy,w:chapelW,h:chapelH};
+  // Chapel perimeter walls and interior
+  rect(L.map,cx,cy,chapelW,chapelH,TILE.wall);
+  box(L.map,cx+1,cy+1,chapelW-2,chapelH-2,TILE.floor);
+  // Internal structural walls
+  for(let y=cy+4;y<cy+chapelH-4;y+=5){
+    for(let x=cx+6;x<cx+chapelW-6;x+=7){
+      setTile(L.map,x,y,TILE.wall);
+    }
+  }
+  // Banners on the sides
+  for(let y=cy+3;y<cy+chapelH-3;y+=6){
+    deco[y*W+(cx+2)]=DEC.banner;
+    deco[y*W+(cx+chapelW-3)]=DEC.banner;
+  }
+  // Pews
+  for(let y=cy+5;y<cy+chapelH-5;y+=5){
+    for(let x=cx+4;x<cx+chapelW-4;x+=3){
+      if(L.map[y*W+x]===TILE.floor) deco[y*W+x]=DEC.pew;
+    }
+  }
+  // Glass decorations
+  for(let y=cy+3;y<cy+chapelH-3;y+=8){
+    deco[y*W+(cx+Math.floor(chapelW*0.7))]=DEC.glass;
+  }
+  // Altar
+  deco[(cy+Math.floor(chapelH/2))*W+(cx+Math.floor(chapelW*0.6))]=DEC.altar;
+  // Camps
+  const startCamp={x:cx+3,y:cy+3};
+  setTile(L.map,startCamp.x,startCamp.y,TILE.camp);L.camps.push(startCamp);
+  const midCamp={x:cx+Math.floor(chapelW/2),y:cy+Math.floor(chapelH/2)};
+  setTile(L.map,midCamp.x,midCamp.y,TILE.camp);L.camps.push(midCamp);
+  // Enemies distributed inside chapel
+  L.mons.push({x:cx+10,y:cy+8,t:'slime',hp:9,atk:2,def:0});
+  L.mons.push({x:cx+14,y:cy+20,t:'slime',hp:9,atk:2,def:0});
+  L.mons.push({x:cx+22,y:cy+15,t:'slime',hp:9,atk:2,def:0});
+  L.mons.push({x:cx+28,y:cy+28,t:'slime',hp:9,atk:2,def:0});
+  L.mons.push({x:cx+36,y:cy+12,t:'cultist',hp:7,atk:3,def:1});
+  L.mons.push({x:cx+40,y:cy+18,t:'cultist',hp:7,atk:3,def:1});
+  L.mons.push({x:cx+48,y:cy+24,t:'cultist',hp:7,atk:3,def:1});
+  buildBossArena(L);
 
-L.px=startCamp.x;L.py=startCamp.y;return L
+  L.px=startCamp.x;L.py=startCamp.y;return L
 }
 
 const levelConfigs=[
-{
-name:'Fallen Chapel',
-enemies:[{t:'slime',hp:9,atk:2,def:0,count:4},{t:'cultist',hp:7,atk:3,def:1,count:3}],
-boss:{name:'Chapel Warden',hp:60,atk:5,def:1,dropWeapon:'longsword'}
-},
-{
-name:'Bone Crypt',
-enemies:[{t:'skeleton',hp:8,atk:3,def:1,count:4},{t:'bat',hp:5,atk:2,def:0,count:3}],
-boss:{name:'Bone Lord',hp:80,atk:4,def:2,dropWeapon:'battleaxe'}
-},
-{
-name:'Arcane Tower',
-enemies:[{t:'ghoul',hp:10,atk:3,def:1,count:3},{t:'wizard',hp:7,atk:2,def:0,count:2}],
-boss:{name:'Arcane Sage',hp:70,atk:4,def:1,dropWeapon:'staff'}
-},
-{
-name:'Sky Spire',
-enemies:[{t:'gargoyle',hp:12,atk:4,def:2,count:2},{t:'archer',hp:6,atk:2,def:0,count:3}],
-boss:{name:'Sky Sentinel',hp:90,atk:5,def:2,dropWeapon:'crossbow'}
-},
-{
-name:'Dread Citadel',
-enemies:[{t:'demon',hp:15,atk:5,def:2,count:3},{t:'warlock',hp:8,atk:3,def:1,count:2}],
-boss:{name:'Dread Overlord',hp:120,atk:6,def:3,dropWeapon:'greatsword'}
-}
+  {
+    name:'Fallen Chapel',
+    enemies:[{t:'slime',hp:9,atk:2,def:0,count:4},{t:'cultist',hp:7,atk:3,def:1,count:3}],
+    boss:{name:'Chapel Warden',hp:60,atk:5,def:1,dropWeapon:'longsword'}
+  },
+  {
+    name:'Bone Crypt',
+    enemies:[{t:'skeleton',hp:8,atk:3,def:1,count:4},{t:'bat',hp:5,atk:2,def:0,count:3}],
+    boss:{name:'Bone Lord',hp:80,atk:4,def:2,dropWeapon:'battleaxe'}
+  },
+  {
+    name:'Arcane Tower',
+    enemies:[{t:'ghoul',hp:10,atk:3,def:1,count:3},{t:'wizard',hp:7,atk:2,def:0,count:2}],
+    boss:{name:'Arcane Sage',hp:70,atk:4,def:1,dropWeapon:'staff'}
+  },
+  {
+    name:'Sky Spire',
+    enemies:[{t:'gargoyle',hp:12,atk:4,def:2,count:2},{t:'archer',hp:6,atk:2,def:0,count:3}],
+    boss:{name:'Sky Sentinel',hp:90,atk:5,def:2,dropWeapon:'crossbow'}
+  },
+  {
+    name:'Dread Citadel',
+    enemies:[{t:'demon',hp:15,atk:5,def:2,count:3},{t:'warlock',hp:8,atk:3,def:1,count:2}],
+    boss:{name:'Dread Overlord',hp:120,atk:6,def:3,dropWeapon:'greatsword'}
+  }
 ];
 function buildLevelVariant(idx){
-let L=buildLevel1();
-const cfg=levelConfigs[idx];
-// replace existing monsters
-L.mons=L.mons.filter(m=>m.t!=='slime'&&m.t!=='cultist'&&m.t!=='boss');
-// place enemies in pattern around chapel
-const chapel=L.chapelRect;
-const baseX=chapel.x+5, baseY=chapel.y+5;
-let offset=0;
-for(const e of cfg.enemies){
-for(let i=0;i<e.count;i++){
-// spread them out
-const x=baseX+((i6+offset)%20);
-const y=baseY+Math.floor((i6+offset)/20)5+2;
-L.mons.push({x:x,y:y,t:e.t,hp:e.hp,atk:e.atk,def:e.def});
-}
-offset+=3;
-}
-// replace boss
-// remove any boss if present
-L.mons=L.mons.filter(m=>m.t!=='boss');
-// compute boss position similar to original boss arena
-const br=L.bossArenaRect;
-const bossBack={x:br.x+Math.floor(br.w/2), y:br.y+br.h-2};
-L.mons.push({
-x:bossBack.x,
-y:bossBack.y,
-t:'boss',
-name:cfg.boss.name,
-hp:cfg.boss.hp,
-atk:cfg.boss.atk,
-def:cfg.boss.def,
-phase:1,cool:0,enraged:false,awakened:false,
-dropWeapon:cfg.boss.dropWeapon
-});
-// add locked chests around chapel: three chests, middle one is mimic for variety
-const cx=chapel.x, cy=chapel.y;
-L.items.push({x:cx+8,y:cy+5,t:'chest',locked:true,opened:false,mimic:false});
-L.items.push({x:cx+14,y:cy+10,t:'chest',locked:true,opened:false,mimic:true});
-L.items.push({x:cx+20,y:cy+5,t:'chest',locked:true,opened:false,mimic:false});
-return L;
+  let L=buildLevel1();
+  const cfg=levelConfigs[idx];
+  // replace existing monsters
+  L.mons=L.mons.filter(m=>m.t!=='slime'&&m.t!=='cultist'&&m.t!=='boss');
+  // place enemies in pattern around chapel
+  const chapel=L.chapelRect;
+  const baseX=chapel.x+5, baseY=chapel.y+5;
+  let offset=0;
+  for(const e of cfg.enemies){
+    for(let i=0;i<e.count;i++){
+      // spread them out
+      const x=baseX+((i*6+offset)%20);
+      const y=baseY+Math.floor((i*6+offset)/20)*5+2;
+      L.mons.push({x:x,y:y,t:e.t,hp:e.hp,atk:e.atk,def:e.def});
+    }
+    offset+=3;
+  }
+  // replace boss
+  // remove any boss if present
+  L.mons=L.mons.filter(m=>m.t!=='boss');
+  // compute boss position similar to original boss arena
+  const br=L.bossArenaRect;
+  const bossBack={x:br.x+Math.floor(br.w/2), y:br.y+br.h-2};
+  L.mons.push({
+    x:bossBack.x,
+    y:bossBack.y,
+    t:'boss',
+    name:cfg.boss.name,
+    hp:cfg.boss.hp,
+    atk:cfg.boss.atk,
+    def:cfg.boss.def,
+    phase:1,cool:0,enraged:false,awakened:false,
+    dropWeapon:cfg.boss.dropWeapon
+  });
+  // add locked chests around chapel: three chests, middle one is mimic for variety
+  const cx=chapel.x, cy=chapel.y;
+  L.items.push({x:cx+8,y:cy+5,t:'chest',locked:true,opened:false,mimic:false});
+  L.items.push({x:cx+14,y:cy+10,t:'chest',locked:true,opened:false,mimic:true});
+  L.items.push({x:cx+20,y:cy+5,t:'chest',locked:true,opened:false,mimic:false});
+  return L;
 }
 function loadLevel(idx,preserve){
-const prevSouls= preserve? state.souls:0;
-const prevChestKeys= preserve? (state.chestKeys||0):0;
-const prevWeapon= preserve? state.weapon: null;
-const prevFlasks= preserve? state.flasks: null;
-const prevFlasksMax= preserve? state.flasksMax: null;
-const prevFlaskHeal= preserve? state.flaskHeal: null;
-const prevHp= preserve? state.hp:16;
-const prevHpMax= preserve? state.hpmax:16;
-const prevSta= preserve? state.sta:10;
-const prevStaMax= preserve? state.stamax:10;
-const prevArrows= preserve? state.arrows:0;
-const prevBoons= preserve? state.boons:{light:false};
-const g=buildLevelVariant(idx);
-// Ensure start tile is passable
-setTile(g.map,g.px,g.py,TILE.camp);
-floorSeen=new Uint8Array(WH).fill(0);visible=new Uint8Array(WH).fill(0);
-state = {
-...g,
-hp: preserve? prevHp:16, hpmax: preserve? prevHpMax:16,
-atk:2, def:0,
-sta: preserve? prevSta:10, stamax: preserve? prevStaMax:10,
-souls: preserve? prevSouls:0,
-weapon: prevWeapon||{name:'Dagger',melee:1,reach:1,range:0},
-arrows: preserve? prevArrows:0,
-turn:0,
-dead:false,
-won:false,
-inBossArena:false,
-bossArenaSealed:false,
-prevPosition:null,
-checkpoint:{x:g.px,y:g.py,hpmax:16,weapon:'Dagger'},
-bloodstain:null,
-boons: preserve? prevBoons:{light:false},
-flasksMax: preserve? (prevFlasksMax||2):2,
-flasks: preserve? prevFlasks:2,
-flaskHeal: preserve? prevFlaskHeal:10,
-blockSight:new Uint8Array(WH),
-hasBossKey:false,
-chestKeys: preserve? prevChestKeys:0,
-currentLevelIndex:idx
-};
-rebuildBlockers();
-recalcFOV(true);
-updateHud();updateMenuUI();resize();
-setLevelTitle();
+  const prevSouls= preserve? state.souls:0;
+  const prevChestKeys= preserve? (state.chestKeys||0):0;
+  const prevWeapon= preserve? state.weapon: null;
+  const prevFlasks= preserve? state.flasks: null;
+  const prevFlasksMax= preserve? state.flasksMax: null;
+  const prevFlaskHeal= preserve? state.flaskHeal: null;
+  const prevHp= preserve? state.hp:16;
+  const prevHpMax= preserve? state.hpmax:16;
+  const prevSta= preserve? state.sta:10;
+  const prevStaMax= preserve? state.stamax:10;
+  const prevArrows= preserve? state.arrows:0;
+  const prevBoons= preserve? state.boons:{light:false};
+  const g=buildLevelVariant(idx);
+  // Ensure start tile is passable
+  setTile(g.map,g.px,g.py,TILE.camp);
+  floorSeen=new Uint8Array(W*H).fill(0);visible=new Uint8Array(W*H).fill(0);
+  state = {
+    ...g,
+    hp: preserve? prevHp:16, hpmax: preserve? prevHpMax:16,
+    atk:2, def:0,
+    sta: preserve? prevSta:10, stamax: preserve? prevStaMax:10,
+    souls: preserve? prevSouls:0,
+    weapon: prevWeapon||{name:'Dagger',melee:1,reach:1,range:0},
+    arrows: preserve? prevArrows:0,
+    turn:0,
+    dead:false,
+    won:false,
+    inBossArena:false,
+    bossArenaSealed:false,
+    prevPosition:null,
+    checkpoint:{x:g.px,y:g.py,hpmax:16,weapon:'Dagger'},
+    bloodstain:null,
+    boons: preserve? prevBoons:{light:false},
+    flasksMax: preserve? (prevFlasksMax||2):2,
+    flasks: preserve? prevFlasks:2,
+    flaskHeal: preserve? prevFlaskHeal:10,
+    blockSight:new Uint8Array(W*H),
+    hasBossKey:false,
+    chestKeys: preserve? prevChestKeys:0,
+    currentLevelIndex:idx
+  };
+  rebuildBlockers();
+  recalcFOV(true);
+  updateHud();updateMenuUI();resize();
+  setLevelTitle();
 }
 function setLevelTitle(){
-const cfg=levelConfigs[state.currentLevelIndex||0];
-const levelStr='Level '+( (state.currentLevelIndex||0)+1 )+' — '+cfg.name;
-const title='Dot Souls — '+cfg.name;
-document.title=title;
-$('gameTitle').textContent=title;
-const ln=$('levelName');
-if(ln) ln.textContent=levelStr;
-$('new').textContent='Reset '+cfg.name;
-const canvas=document.getElementById('c');
-canvas.setAttribute('aria-label',levelStr);
+  const cfg=levelConfigs[state.currentLevelIndex||0];
+  const levelStr='Level '+( (state.currentLevelIndex||0)+1 )+' — '+cfg.name;
+  const title='Dot Souls — '+cfg.name;
+  document.title=title;
+  $('gameTitle').textContent=title;
+  const ln=$('levelName');
+  if(ln) ln.textContent=levelStr;
+  $('new').textContent='Reset '+cfg.name;
+  const canvas=document.getElementById('c');
+  canvas.setAttribute('aria-label',levelStr);
 }
 function rebuildBlockers(){
-state.blockSight=new Uint8Array(WH);
-for(let i=0;i<WH;i++){const t=state.map[i];state.blockSight[i]=(t===TILE.wall||t===TILE.fog)?1:0}
+  state.blockSight=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++){const t=state.map[i];state.blockSight[i]=(t===TILE.wall||t===TILE.fog)?1:0}
 }
-function pass(x,y){if(x<0||y<0||x>=W||y>=H)return false;const t=state.map[yW+x];return t==TILE.floor||t==TILE.stair||t==TILE.camp||t==TILE.fog}
+function pass(x,y){if(x<0||y<0||x>=W||y>=H)return false;const t=state.map[y*W+x];return t==TILE.floor||t==TILE.stair||t==TILE.camp||t==TILE.fog}
 function actorAt(x,y){return state.mons.find(m=>m.x==x&&m.y==y)}
 function tryMove(m,dx,dy){
-const nx=m.x+dx,ny=m.y+dy;
-if(m.t==='boss' && state.bossArenaRect){
-const nx2=m.x+dx, ny2=m.y+dy;
-const r=state.bossArenaRect;
-if(nx2 < r.x || nx2 >= r.x + r.w || ny2 < r.y || ny2 >= r.y + r.h){
-return 0;
-}
-}if(nx<0||ny<0||nx>=W||ny>=H)return 0;
-if(state.px==nx&&state.py==ny){attack(m,state);return 1}
-const t=state.map[nyW+nx];if(t==TILE.wall)return 0;
-if(t==TILE.fog&&m!==state)return 0;
-if(actorAt(nx,ny))return 0;nudge(m,dx,dy);m.x=nx;m.y=ny;return 1
+  const nx=m.x+dx,ny=m.y+dy;
+  if(m.t==='boss' && state.bossArenaRect){
+    const nx2=m.x+dx, ny2=m.y+dy;
+    const r=state.bossArenaRect;
+    if(nx2 < r.x || nx2 >= r.x + r.w || ny2 < r.y || ny2 >= r.y + r.h){
+      return 0;
+    }
+  }if(nx<0||ny<0||nx>=W||ny>=H)return 0;
+  if(state.px==nx&&state.py==ny){attack(m,state);return 1}
+  const t=state.map[ny*W+nx];if(t==TILE.wall)return 0;
+  if(t==TILE.fog&&m!==state)return 0;
+  if(actorAt(nx,ny))return 0;nudge(m,dx,dy);m.x=nx;m.y=ny;return 1
 }
 const STAMINA={move:1,attackBase:2,extraReach:1,waitRegen:2,perTurnRegenNoAttack:1,perTurnRegenAlways:1};
 let actedThisTurn={attacked:false};
 function monName(m){if(!m) return 'Unknown';if(m.t==='boss') return m.name||'Chapel Warden';if(m.t==='slime') return 'Slime';if(m.t==='cultist') return 'Cultist';return (m.name||m.t||'Foe')}
 function attack(a,b){
-if(rnd()<.08){
-if(a===state){nmsg('You miss.','#aaa')}
-else if(b===state){nmsg(${monName(a)} misses you.','#aaa)}
-return
-}
-const baseAtk=(a.atk||0)+(a===state?(state.weapon.melee||0):0);
-const dmg=Math.max(1,(baseAtk+rni(0,1))-(b.def||0));
-b.hp=(b.hp||0)-dmg;
-if(a===state){
-floatAt(b.x,b.y,-${dmg},'#f66');
-nmsg(You hit ${monName(b)} for ${dmg}.,'#f88');
-actedThisTurn.attacked=true;
-if(b.t==='boss') b.awakened = true;
-} else if(b===state){
-state.hp=Math.max(0,state.hp);
-floatAt(state.px,state.py,-${dmg},'#f66');
-nmsg(${monName(a)} hits you for ${dmg}.,'#f66');
-if(state.hp<=0){onDeath();return}
-}
-if((b.hp||0)<=0){
-if(b===state) return;
-let gain=0;
-if(b.t==='slime')gain=3;
-else if(b.t==='cultist')gain=5;
-else if(b.t==='boss')gain=35;
-state.souls+=gain;floatAt(b.x,b.y,'+'+gain,palette().gold);
-nmsg(You killed ${monName(b)}${gain? and gained ${gain} souls:''}.,palette().gold);
-if(b.t==='boss'){
-nmsg(${monName(b)} defeated!,'#9f9');
-if(state.inBossArena){
-state.inBossArena=false;
-state.bossArenaSealed=false;
-dirtyFOV=true;
-nmsg('The door is unsealed. You can leave the arena.','#9f9');
-}
-// spawn reward chest at boss location with the boss-specific weapon
-if(!state.items.find(i=>i.t==='chest' && i.x===b.x && i.y===b.y)){
-const chest={x:b.x,y:b.y,t:'chest',opened:false};
-if(b.dropWeapon){chest.bossChest=true;chest.weaponDrop=b.dropWeapon;}
-state.items.push(chest);
-nmsg(A chest appears where ${monName(b)} fell!,'#9f9');
-}
-}
-state.mons=state.mons.filter(m=>m!==b)
-}
+  if(rnd()<.08){
+    if(a===state){nmsg('You miss.','#aaa')}
+    else if(b===state){nmsg(`${monName(a)} misses you.','#aaa`)}
+    return
+  }
+  const baseAtk=(a.atk||0)+(a===state?(state.weapon.melee||0):0);
+  const dmg=Math.max(1,(baseAtk+rni(0,1))-(b.def||0));
+  b.hp=(b.hp||0)-dmg;
+  if(a===state){
+    floatAt(b.x,b.y,`-${dmg}`,'#f66');
+    nmsg(`You hit ${monName(b)} for ${dmg}.`,'#f88');
+    actedThisTurn.attacked=true;
+    if(b.t==='boss') b.awakened = true;
+  } else if(b===state){
+    state.hp=Math.max(0,state.hp);
+    floatAt(state.px,state.py,`-${dmg}`,'#f66');
+    nmsg(`${monName(a)} hits you for ${dmg}.`,'#f66');
+    if(state.hp<=0){onDeath();return}
+  }
+  if((b.hp||0)<=0){
+    if(b===state) return;
+    let gain=0;
+    if(b.t==='slime')gain=3;
+    else if(b.t==='cultist')gain=5;
+    else if(b.t==='boss')gain=35;
+    state.souls+=gain;floatAt(b.x,b.y,'+'+gain,palette().gold);
+    nmsg(`You killed ${monName(b)}${gain?` and gained ${gain} souls`:''}.`,palette().gold);
+    if(b.t==='boss'){
+      nmsg(`${monName(b)} defeated!`,'#9f9');
+      if(state.inBossArena){
+        state.inBossArena=false;
+        state.bossArenaSealed=false;
+        dirtyFOV=true;
+        nmsg('The door is unsealed. You can leave the arena.','#9f9');
+      }
+      // spawn reward chest at boss location with the boss-specific weapon
+      if(!state.items.find(i=>i.t==='chest' && i.x===b.x && i.y===b.y)){
+        const chest={x:b.x,y:b.y,t:'chest',opened:false};
+        if(b.dropWeapon){chest.bossChest=true;chest.weaponDrop=b.dropWeapon;}
+        state.items.push(chest);
+        nmsg(`A chest appears where ${monName(b)} fell!`,'#9f9');
+      }
+    }
+    state.mons=state.mons.filter(m=>m!==b)
+  }
 }
 function reachAttack(){
-if(state.dead||state.won) return;
-const r=state.weapon.reach||1;
-const cost=STAMINA.attackBase+Math.max(0,r-1)STAMINA.extraReach;
-if(state.sta<cost){nmsg('Too exhausted to attack.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}
-let hits=0;const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
-for(const[dx,dy] of dirs){for(let d=1;d<=r;d++){const x=state.px+dxd,y=state.py+dy*d;const m=actorAt(x,y);if(m){attack(state,m);hits++;break}if(!pass(x,y))break}}
-if(!hits){nmsg('You swing at the air.','#aaa')}
-state.sta=Math.max(0,state.sta-cost);endTurn()
+  if(state.dead||state.won) return;
+  const r=state.weapon.reach||1;
+  const cost=STAMINA.attackBase+Math.max(0,r-1)*STAMINA.extraReach;
+  if(state.sta<cost){nmsg('Too exhausted to attack.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}
+  let hits=0;const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+  for(const[dx,dy] of dirs){for(let d=1;d<=r;d++){const x=state.px+dx*d,y=state.py+dy*d;const m=actorAt(x,y);if(m){attack(state,m);hits++;break}if(!pass(x,y))break}}  
+  if(!hits){nmsg('You swing at the air.','#aaa')}
+  state.sta=Math.max(0,state.sta-cost);endTurn()
 }
 function equipWeapon(w){
-if(w==='sword'){state.weapon={name:'Sword',melee:2,reach:1,range:0}}
-else if(w==='spear'){state.weapon={name:'Spear',melee:1,reach:2,range:0}}
-else if(w==='longsword'){state.weapon={name:'Longsword',melee:3,reach:2,range:1}}
-else if(w==='battleaxe'){state.weapon={name:'Battleaxe',melee:4,reach:1,range:0}}
-else if(w==='staff'){state.weapon={name:'Mage Staff',melee:2,reach:1,range:2}}
-else if(w==='crossbow'){state.weapon={name:'Crossbow',melee:1,reach:1,range:3}}
-else if(w==='greatsword'){state.weapon={name:'Greatsword',melee:5,reach:3,range:1}}
-else{state.weapon={name:'Dagger',melee:1,reach:1,range:0}}
-nmsg('Equipped '+state.weapon.name,'#6df')
+  if(w==='sword'){state.weapon={name:'Sword',melee:2,reach:1,range:0}}
+  else if(w==='spear'){state.weapon={name:'Spear',melee:1,reach:2,range:0}}
+  else if(w==='longsword'){state.weapon={name:'Longsword',melee:3,reach:2,range:1}}
+  else if(w==='battleaxe'){state.weapon={name:'Battleaxe',melee:4,reach:1,range:0}}
+  else if(w==='staff'){state.weapon={name:'Mage Staff',melee:2,reach:1,range:2}}
+  else if(w==='crossbow'){state.weapon={name:'Crossbow',melee:1,reach:1,range:3}}
+  else if(w==='greatsword'){state.weapon={name:'Greatsword',melee:5,reach:3,range:1}}
+  else{state.weapon={name:'Dagger',melee:1,reach:1,range:0}}
+  nmsg('Equipped '+state.weapon.name,'#6df')
 }
 function itemAt(x,y){return state.items.find(i=>i.x==x&&i.y==y)}
 
+
 function handleCellEnter(nx, ny){
-const it = itemAt(nx, ny);
-if (it && it.t === 'chest'){
-if (!it.opened){
-if (it.locked){
-if ((state.chestKeys || 0) <= 0){
-nmsg('Locked. Need a chest key to open.','#aaa');
-return true;
-}
-state.chestKeys = Math.max(0,(state.chestKeys||0)-1);
-if (rnd() < 1/3){
-state.mons.push({x:it.x,y:it.y,t:'mimic',name:'Mimic',hp:25,atk:4,def:1,phase:1,cool:0,enraged:false,awakened:false});
-nmsg('The chest was a mimic! It reveals itself and attacks!','#f55');
-it.opened = true;
-return true;
-} else {
-state.souls += 200;
-nmsg('You open the chest and gain 200 souls.', palette().gold);
-it.opened = true;
-return true;
-}
-} else if (it.bossChest){
-it.opened = true;
-if (it.weaponDrop){
-equipWeapon(it.weaponDrop);
-nmsg(You claim the ${state.weapon.name} from the boss chest!, '#6df');
-} else {
-nmsg('You open the chest.', '#6df');
-}
-} else {
-it.opened = true;
-const amt = rni(2,6);
-state.souls += amt;
-nmsg(You open the chest and gain ${amt} souls., palette().gold);
-}
-} else {
-nmsg('The chest is empty.', '#aaa');
-}
-return true;
-}
+  const it = itemAt(nx, ny);
+  if (it && it.t === 'chest'){
+    if (!it.opened){
+      if (it.locked){
+        if ((state.chestKeys || 0) <= 0){
+          nmsg('Locked. Need a chest key to open.','#aaa');
+          return true;
+        }
+        state.chestKeys = Math.max(0,(state.chestKeys||0)-1);
+        if (rnd() < 1/3){
+          state.mons.push({x:it.x,y:it.y,t:'mimic',name:'Mimic',hp:25,atk:4,def:1,phase:1,cool:0,enraged:false,awakened:false});
+          nmsg('The chest was a mimic! It reveals itself and attacks!','#f55');
+          it.opened = true;
+          return true;
+        } else {
+          state.souls += 200;
+          nmsg('You open the chest and gain 200 souls.', palette().gold);
+          it.opened = true;
+          return true;
+        }
+      } else if (it.bossChest){
+        it.opened = true;
+        if (it.weaponDrop){
+          equipWeapon(it.weaponDrop);
+          nmsg(`You claim the ${state.weapon.name} from the boss chest!`, '#6df');
+        } else {
+          nmsg('You open the chest.', '#6df');
+        }
+      } else {
+        it.opened = true;
+        const amt = rni(2,6);
+        state.souls += amt;
+        nmsg(`You open the chest and gain ${amt} souls.`, palette().gold);
+      }
+    } else {
+      nmsg('The chest is empty.', '#aaa');
+    }
+    return true;
+  }
 
-if (it){
-if (it.t == 'souls'){ state.souls += it.v; nmsg('Souls +' + it.v, '#ff6'); floatAt(nx, ny, '+' + it.v, '#ff6'); }
-if (it.t == 'weapon'){ equipWeapon(it.w); }
-state.items = state.items.filter(a => a !== it);
-}
+  if (it){
+    if (it.t == 'souls'){ state.souls += it.v; nmsg('Souls +' + it.v, '#ff6'); floatAt(nx, ny, '+' + it.v, '#ff6'); }
+    if (it.t == 'weapon'){ equipWeapon(it.w); }
+    state.items = state.items.filter(a => a !== it);
+  }
 
-// Bloodstain pickup
-if (state.bloodstain && state.bloodstain.x === nx && state.bloodstain.y === ny) {
-const recovered = state.bloodstain.souls || 0;
-if (recovered > 0) {
-state.souls += recovered;
-nmsg(You recovered ${recovered} souls., palette().gold);
-floatAt(nx, ny, '+' + recovered, palette().gold);
-} else {
-nmsg('You touch the bloodstain, but it holds no souls.', '#aaa');
-}
-state.bloodstain = null;
-updateHud();
-return true; // already consumed a pickup on this cell
-}
+  // Bloodstain pickup
+  if (state.bloodstain && state.bloodstain.x === nx && state.bloodstain.y === ny) {
+    const recovered = state.bloodstain.souls || 0;
+    if (recovered > 0) {
+      state.souls += recovered;
+      nmsg(`You recovered ${recovered} souls.`, palette().gold);
+      floatAt(nx, ny, '+' + recovered, palette().gold);
+    } else {
+      nmsg('You touch the bloodstain, but it holds no souls.', '#aaa');
+    }
+    state.bloodstain = null;
+    updateHud();
+    return true; // already consumed a pickup on this cell
+  }
 
-return false;
+  return false;
 }
 function move(dx,dy){
-if(state.dead||state.won) return;
-const moveCost=STAMINA.move;
-if(dx!==0||dy!==0){if(state.sta<moveCost){nmsg('Too exhausted to move.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}}
-const nx=state.px+dx,ny=state.py+dy;if(nx<0||ny<0||nx>=W||ny>=H)return
-
-// one-way door exit block: can't leave boss arena through the entry gap while boss is alive
-if(state.inBossArena && state.mons.some(m=>m.t==='boss')){
-if(state.px===state.bossEntry?.x && state.py===state.bossEntry?.y && dx===0 && dy===-1){
-nmsg('The door is sealed.','#aaa');
-return;
-}
-}
+  if(state.dead||state.won) return;
+  const moveCost=STAMINA.move;
+  if(dx!==0||dy!==0){if(state.sta<moveCost){nmsg('Too exhausted to move.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}}
+  const nx=state.px+dx,ny=state.py+dy;if(nx<0||ny<0||nx>=W||ny>=H)return
+  
+  // one-way door exit block: can't leave boss arena through the entry gap while boss is alive
+  if(state.inBossArena && state.mons.some(m=>m.t==='boss')){
+    if(state.px===state.bossEntry?.x && state.py===state.bossEntry?.y && dx===0 && dy===-1){
+      nmsg('The door is sealed.','#aaa');
+      return;
+    }
+  }
 const m=actorAt(nx,ny);if(m){return reachAttackTowards(dx,dy)}
-const t=state.map[nyW+nx];
-if(t===TILE.bossGate){
-if(!state.hasBossKey){nmsg('The door is locked. You need the boss key.','#aaa');return}
-// unlock and open door
-setTile(state.map,nx,ny,TILE.floor);
-nmsg('You use the boss key to unlock the door.','#6df');
-}if(t==TILE.wall)return;
-if(t==TILE.fog){enterFogGate(nx,ny);return}
-if(!pass(nx,ny)) return;
-handleCellEnter(nx,ny);nudge(state,dx,dy);state.px=nx;state.py=ny;
-if(state.bossEntry && state.px===state.bossEntry.x && state.py===state.bossEntry.y && !state.inBossArena){
-state.inBossArena=true; state.bossArenaSealed=true; nmsg('The arena seals behind you!','#f77');
-}
-if(dx!==0||dy!==0){state.sta=Math.max(0,state.sta-moveCost)}
-if(t==TILE.stair){nmsg('You see stairs. Press > to descend.',palette().info)}
-dirtyFOV=true;endTurn()
+  const t=state.map[ny*W+nx];
+  if(t===TILE.bossGate){
+    if(!state.hasBossKey){nmsg('The door is locked. You need the boss key.','#aaa');return}
+    // unlock and open door
+    setTile(state.map,nx,ny,TILE.floor);
+    nmsg('You use the boss key to unlock the door.','#6df');
+  }if(t==TILE.wall)return;
+  if(t==TILE.fog){enterFogGate(nx,ny);return}
+  if(!pass(nx,ny)) return;
+  handleCellEnter(nx,ny);nudge(state,dx,dy);state.px=nx;state.py=ny;
+  if(state.bossEntry && state.px===state.bossEntry.x && state.py===state.bossEntry.y && !state.inBossArena){
+    state.inBossArena=true; state.bossArenaSealed=true; nmsg('The arena seals behind you!','#f77'); 
+  }
+  if(dx!==0||dy!==0){state.sta=Math.max(0,state.sta-moveCost)}
+  if(t==TILE.stair){nmsg('You see stairs. Press > to descend.',palette().info)}
+  dirtyFOV=true;endTurn()
 }
 function reachAttackTowards(dx,dy){
-if(state.dead||state.won) return;
-const r=1,cost=STAMINA.attackBase+Math.max(0,r-1)STAMINA.extraReach;
-if(state.sta<cost){nmsg('Too exhausted to attack.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}
-const x=state.px+dx,y=state.py+dy;const m=actorAt(x,y);if(m){attack(state,m)}
-state.sta=Math.max(0,state.sta-cost);nudge(state,dx,dy);dirtyFOV=true;endTurn()
+  if(state.dead||state.won) return;
+  const r=1,cost=STAMINA.attackBase+Math.max(0,r-1)*STAMINA.extraReach;
+  if(state.sta<cost){nmsg('Too exhausted to attack.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}
+  const x=state.px+dx,y=state.py+dy;const m=actorAt(x,y);if(m){attack(state,m)}
+  state.sta=Math.max(0,state.sta-cost);nudge(state,dx,dy);dirtyFOV=true;endTurn()
 }
 function endTurn(playerWaited=false){
-for(const m of state.mons){if(m.t==='boss'){bossAI(m);continue}normalAI(m)}
-let regen=STAMINA.perTurnRegenAlways;if(playerWaited){regen+=STAMINA.waitRegen}else if(!actedThisTurn.attacked){regen+=STAMINA.perTurnRegenNoAttack}
-regenSta(regen);actedThisTurn.attacked=false;state.turn++;dirtyFOV=true;updateMenuUI()
+  for(const m of state.mons){if(m.t==='boss'){bossAI(m);continue}normalAI(m)}
+  let regen=STAMINA.perTurnRegenAlways;if(playerWaited){regen+=STAMINA.waitRegen}else if(!actedThisTurn.attacked){regen+=STAMINA.perTurnRegenNoAttack}
+  regenSta(regen);actedThisTurn.attacked=false;state.turn++;dirtyFOV=true;updateMenuUI()
 }
 function regenSta(a){const b=state.sta;state.sta=Math.min(state.stamax,state.sta+a);if(state.sta>b){floatAt(state.px,state.py,'+'+(state.sta-b),'#9f9')}}
-function normalAI(m){const canSee=los(m.x,m.y,state.px,state.py,(x,y)=>state.blockSight[yW+x]);const d=Math.abs(m.x-state.px)+Math.abs(m.y-state.py);if(canSee&&d<=8){const dx=Math.sign(state.px-m.x),dy=Math.sign(state.py-m.y);if(Math.abs(state.px-m.x)>Math.abs(state.py-m.y)) tryMove(m,dx,0)||tryMove(m,0,dy);else tryMove(m,0,dy)||tryMove(m,dx,0)}else if(rnd()<.35){tryMove(m,rni(-1,1),rni(-1,1))}}
+function normalAI(m){const canSee=los(m.x,m.y,state.px,state.py,(x,y)=>state.blockSight[y*W+x]);const d=Math.abs(m.x-state.px)+Math.abs(m.y-state.py);if(canSee&&d<=8){const dx=Math.sign(state.px-m.x),dy=Math.sign(state.py-m.y);if(Math.abs(state.px-m.x)>Math.abs(state.py-m.y)) tryMove(m,dx,0)||tryMove(m,0,dy);else tryMove(m,0,dy)||tryMove(m,dx,0)}else if(rnd()<.35){tryMove(m,rni(-1,1),rni(-1,1))}}
 function bossAI(b){
-if(b.cool>0)b.cool--;
-if(!b.awakened) return;
-const dist=Math.abs(b.x-state.px)+Math.abs(b.y-state.py);
-const canSee=los(b.x,b.y,state.px,state.py,(x,y)=>state.blockSight[yW+x]);
-if(!b.enraged&&b.hp<=Math.max(20,Math.floor(0.3560))){b.enraged=true;nmsg('The Chapel Warden becomes enraged!','#f77');floatAt(b.x,b.y,'ENRAGED','#f77')}
-const shockEvery=b.enraged?4:6;
-if(state.turn%shockEvery===0&&canSee){doShockwave(b,2);return}
-const aligned=(b.x===state.px||b.y===state.py);
-if(aligned&&dist<=2){
-if(b.x===state.px){const dy=Math.sign(state.py-b.y);if(dy!==0){bossSlashLine(b.x,b.y,0,dy,2);if(state.px===b.x&&Math.abs(state.py-b.y)<=2) attack(b,state)}}
-else{const dx=Math.sign(state.px-b.x);if(dx!==0){bossSlashLine(b.x,b.y,dx,0,2);if(state.py===b.y&&Math.abs(state.px-b.x)<=2) attack(b,state)}}
-return
-}
-const speed=b.enraged?(rnd()<.7?2:1):1;for(let s=0;s<speed;s++){const dx=Math.sign(state.px-b.x),dy=Math.sign(state.py-b.y);if(Math.abs(state.px-b.x)>Math.abs(state.py-b.y)) tryMove(b,dx,0)||tryMove(b,0,dy);else tryMove(b,0,dy)||tryMove(b,dx,0)}
+  if(b.cool>0)b.cool--;
+  if(!b.awakened) return;
+  const dist=Math.abs(b.x-state.px)+Math.abs(b.y-state.py);
+  const canSee=los(b.x,b.y,state.px,state.py,(x,y)=>state.blockSight[y*W+x]);
+  if(!b.enraged&&b.hp<=Math.max(20,Math.floor(0.35*60))){b.enraged=true;nmsg('The Chapel Warden becomes enraged!','#f77');floatAt(b.x,b.y,'ENRAGED','#f77')}
+  const shockEvery=b.enraged?4:6;
+  if(state.turn%shockEvery===0&&canSee){doShockwave(b,2);return}
+  const aligned=(b.x===state.px||b.y===state.py);
+  if(aligned&&dist<=2){
+    if(b.x===state.px){const dy=Math.sign(state.py-b.y);if(dy!==0){bossSlashLine(b.x,b.y,0,dy,2);if(state.px===b.x&&Math.abs(state.py-b.y)<=2) attack(b,state)}}
+    else{const dx=Math.sign(state.px-b.x);if(dx!==0){bossSlashLine(b.x,b.y,dx,0,2);if(state.py===b.y&&Math.abs(state.px-b.x)<=2) attack(b,state)}}
+    return
+  }
+  const speed=b.enraged?(rnd()<.7?2:1):1;for(let s=0;s<speed;s++){const dx=Math.sign(state.px-b.x),dy=Math.sign(state.py-b.y);if(Math.abs(state.px-b.x)>Math.abs(state.py-b.y)) tryMove(b,dx,0)||tryMove(b,0,dy);else tryMove(b,0,dy)||tryMove(b,dx,0)}
 }
 function doShockwave(b,radius){nmsg('Warden unleashes a shockwave!','#ff9');anims.bossFx.push({kind:'shock',x:b.x,y:b.y,t:14,r:radius});const inR=Math.abs(state.px-b.x)+Math.abs(state.py-b.y)<=radius;if(inR) attack(b,state)}
 function bossSlashLine(x,y,dx,dy,len){anims.bossFx.push({kind:'slash',x,y,dx,dy,len,t:8})}
 function restAtCamp(x,y){
-state.checkpoint={x,y,hpmax:state.hpmax,weapon:state.weapon.name};
-refillFlasks();
-nmsg(You rest at the campfire. Flasks refilled (${state.flasks}/${state.flasksMax}).,'#ffb347');
-floatAt(x,y,'REST','#ffb347');
-anims.campFx.push({x,y,t:24});for(let i=0;i<3;i++){anims.smoke.push({x,y,life:20+i6})}
-respawnAllMobs(true);updateMenuUI();updateHud()
+  state.checkpoint={x,y,hpmax:state.hpmax,weapon:state.weapon.name};
+  refillFlasks();
+  nmsg(`You rest at the campfire. Flasks refilled (${state.flasks}/${state.flasksMax}).`,'#ffb347');
+  floatAt(x,y,'REST','#ffb347');
+  anims.campFx.push({x,y,t:24});for(let i=0;i<3;i++){anims.smoke.push({x,y,life:20+i*6})}
+  respawnAllMobs(true);updateMenuUI();updateHud()
 }
 function refillFlasks(){state.flasks=state.flasksMax}
 function useFlask(){
-if(state.dead||state.won) return;
-if(state.flasks<=0){nmsg('No flasks remaining.','#aaa');floatAt(state.px,state.py,'EMPTY','#aaa');return}
-if(state.hp>=state.hpmax){nmsg('You are already at full health.','#aaa');return}
-const healAmt=state.flaskHeal||10;
-const before=state.hp;
-state.hp=Math.min(state.hpmax,state.hp+healAmt);
-state.flasks=Math.max(0,state.flasks-1);
-const healed=state.hp-before;
-floatAt(state.px,state.py,'+'+healed,'#9fdc8a');
-nmsg(You drink from a flask and heal ${healed} HP. (${state.flasks}/${state.flasksMax} left),'#9fdc8a');
-updateHud()
+  if(state.dead||state.won) return;
+  if(state.flasks<=0){nmsg('No flasks remaining.','#aaa');floatAt(state.px,state.py,'EMPTY','#aaa');return}
+  if(state.hp>=state.hpmax){nmsg('You are already at full health.','#aaa');return}
+  const healAmt=state.flaskHeal||10;
+  const before=state.hp;
+  state.hp=Math.min(state.hpmax,state.hp+healAmt);
+  state.flasks=Math.max(0,state.flasks-1);
+  const healed=state.hp-before;
+  floatAt(state.px,state.py,'+'+healed,'#9fdc8a');
+  nmsg(`You drink from a flask and heal ${healed} HP. (${state.flasks}/${state.flasksMax} left)`,'#9fdc8a');
+  updateHud()
 }
 function respawnAllMobs(){const base=buildLevel1();const bossDead=!state.mons.some(m=>m.t==='boss');state.mons=base.mons.filter(m=>!(bossDead&&m.t==='boss')).map(m=>({...m}));clearNudges();dirtyFOV=true;nmsg('You feel the world rekindle... foes return.','#ff9')}
 function drawFloorCell(x,y,a){
-const pal=palette();ctx.globalAlpha=a;ctx.fillStyle=pal.floor;ctx.fillRect(xT,yT,T,T);
-const pa=Math.max(0,Math.min(1,a*.08));if(pa>0){ctx.globalAlpha=pa;ctx.fillStyle='#9fb3d4';for(let yy=0;yy<T;yy+=3){ctx.fillRect(xT,yT+yy,T,1)}for(let xx=0;xx<T;xx+=3){ctx.fillRect(xT+xx,yT,1,T)}}
-const ra=Math.max(0,Math.min(1,a*.06));if(ra>0){ctx.globalAlpha=ra;ctx.strokeStyle='#6d7a95';if(((x13+y7+((seedv>>>0)&255))%11)==0){ctx.beginPath();ctx.moveTo(xT+2,yT+T-2);ctx.lineTo(xT+T-3,yT+2);ctx.stroke()}}
-ctx.globalAlpha=1
+  const pal=palette();ctx.globalAlpha=a;ctx.fillStyle=pal.floor;ctx.fillRect(x*T,y*T,T,T);
+  const pa=Math.max(0,Math.min(1,a*.08));if(pa>0){ctx.globalAlpha=pa;ctx.fillStyle='#9fb3d4';for(let yy=0;yy<T;yy+=3){ctx.fillRect(x*T,y*T+yy,T,1)}for(let xx=0;xx<T;xx+=3){ctx.fillRect(x*T+xx,y*T,1,T)}}
+  const ra=Math.max(0,Math.min(1,a*.06));if(ra>0){ctx.globalAlpha=ra;ctx.strokeStyle='#6d7a95';if(((x*13+y*7+((seedv>>>0)&255))%11)==0){ctx.beginPath();ctx.moveTo(x*T+2,y*T+T-2);ctx.lineTo(x*T+T-3,y*T+2);ctx.stroke()}}
+  ctx.globalAlpha=1
 }
 function drawWallCell(x,y,a){
-const pal=palette();ctx.globalAlpha=a;ctx.fillStyle=pal.wall;ctx.fillRect(xT,yT,T,T);
-ctx.fillStyle=pal.bevelLight;ctx.fillRect(xT,yT,T,1);ctx.fillRect(xT,yT,1,T);
-ctx.fillStyle=pal.bevelDark;ctx.fillRect(xT,yT+T-1,T,1);ctx.fillRect(xT+T-1,yT,1,T);
-const ra=Math.max(0,Math.min(1,a*.15));if(ra>0){ctx.globalAlpha=ra;ctx.fillStyle='#98a7c7';const rib=((x+y)&1)==0;if(rib){ctx.fillRect(xT+Math.floor(T/2)-1,yT+1,2,T-2)}}
-ctx.globalAlpha=1
+  const pal=palette();ctx.globalAlpha=a;ctx.fillStyle=pal.wall;ctx.fillRect(x*T,y*T,T,T);
+  ctx.fillStyle=pal.bevelLight;ctx.fillRect(x*T,y*T,T,1);ctx.fillRect(x*T,y*T,1,T);
+  ctx.fillStyle=pal.bevelDark;ctx.fillRect(x*T,y*T+T-1,T,1);ctx.fillRect(x*T+T-1,y*T,1,T);
+  const ra=Math.max(0,Math.min(1,a*.15));if(ra>0){ctx.globalAlpha=ra;ctx.fillStyle='#98a7c7';const rib=((x+y)&1)==0;if(rib){ctx.fillRect(x*T+Math.floor(T/2)-1,y*T+1,2,T-2)}}
+  ctx.globalAlpha=1
 }
 
 function drawDoorCell(x,y,a){
-const pal=palette();
-ctx.globalAlpha=a;
-// base floor under door
-ctx.fillStyle=pal.floor;
-ctx.fillRect(xT,yT,T,T);
-// door panel
-ctx.fillStyle='rgba(100,150,255,0.15)';
-ctx.fillRect(xT+T0.25,yT+T0.1,T0.5,T0.8);
-// handle
-ctx.fillStyle='rgba(220,220,220,0.6)';
-ctx.fillRect(xT+T0.7,yT+T0.5,Math.max(1,Math.floor(T0.08)),Math.max(1,Math.floor(T0.08)));
-ctx.globalAlpha=1;
+  const pal=palette();
+  ctx.globalAlpha=a;
+  // base floor under door
+  ctx.fillStyle=pal.floor;
+  ctx.fillRect(x*T,y*T,T,T);
+  // door panel
+  ctx.fillStyle='rgba(100,150,255,0.15)';
+  ctx.fillRect(x*T+T*0.25,y*T+T*0.1,T*0.5,T*0.8);
+  // handle
+  ctx.fillStyle='rgba(220,220,220,0.6)';
+  ctx.fillRect(x*T+T*0.7,y*T+T*0.5,Math.max(1,Math.floor(T*0.08)),Math.max(1,Math.floor(T*0.08)));
+  ctx.globalAlpha=1;
 }
 function render(){
-if(!state) state={};
-if(state.px==null) state.px=0;
-if(state.py==null) state.py=0;
-if(!state.map) return; // guard: level not yet loaded
+  if(!state) state={};
+  if(state.px==null) state.px=0;
+  if(state.py==null) state.py=0;
+  if(!state.map) return; // guard: level not yet loaded
 
-if(!floorSeen) floorSeen=new Uint8Array(WH).fill(0);
-if(!visible) visible=new Uint8Array(WH).fill(0);
-if(dirtyFOV){computeFOV();dirtyFOV=false}
-ctx.imageSmoothingEnabled=false;
-const vw=Math.floor(can.width/T),vh=Math.floor(can.height/T);
-const ox=Math.max(0,Math.min(state.px-(vw>>1),W-vw)),oy=Math.max(0,Math.min(state.py-(vh>>1),H-vh));
-ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,can.width,can.height);
-const pal=palette();
-for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){
-const mx=x+ox,my=y+oy,ti=state.map[myW+mx];
-let seen=floorSeen[myW+mx]?1:0;
-let vis=visible[myW+mx]?1:0;
-if(state.boons.light && state.chapelRect){
-const cr=state.chapelRect;
-if(mx>=cr.x&&mx<cr.x+cr.w&&my>=cr.y&&my<cr.y+cr.h){
-vis=1; seen=1;
-}
-}
-const a=(!fogEnabled)?1:(vis?1:(seen?pal.tileSeen:0.16));
-if(ti==TILE.bossGate){drawDoorCell(x,y,a)}else if(ti==TILE.wall){drawWallCell(x,y,a)}else{
-drawFloorCell(x,y,a);
-const n=my>0&&state.map[(my-1)W+mx]==TILE.wall,s=my<H-1&&state.map[(my+1)W+mx]==TILE.wall,w=mx>0&&state.map[myW+mx-1]==TILE.wall,e=mx<W-1&&state.map[myW+mx+1]==TILE.wall;
-if(n||s||w||e){const sh=highContrast?pal.shadowHC:pal.shadow;const sh1=Math.max(0,Math.min(1,a.55));const sh2=Math.max(0,Math.min(1,a*.28));
-if(sh1>0){ctx.fillStyle=sh;ctx.globalAlpha=sh1;if(n)ctx.fillRect(xT,yT,T,2);if(s)ctx.fillRect(xT,yT+T-2,T,2);if(w)ctx.fillRect(xT,yT,2,T);if(e)ctx.fillRect(xT+T-2,yT,2,T)}
-if(sh2>0){ctx.globalAlpha=sh2;if(n)ctx.fillRect(xT,yT+2,T,1);if(s)ctx.fillRect(xT,yT+T-3,T,1);if(w)ctx.fillRect(xT+2,yT,1,T);if(e)ctx.fillRect(xT+T-3,yT,1,T)}
-ctx.globalAlpha=1
-}
-}
-if(ti==TILE.stair){const pulse=(anims.shimmerT%60)/60;ctx.save();ctx.globalAlpha=(!fogEnabled||vis)?(0.85+0.15Math.sin(pulse6.283)):Math.max(0.5,pal.tileSeen);ctx.drawImage(spr.stair,0,0,16,16,xT,yT,T,T);ctx.restore()}
-if(ti==TILE.camp){if(!fogEnabled||vis){ctx.globalAlpha=1;ctx.drawImage(spr.camp,0,0,8,8,xT,yT,T,T)}else if(seen){ctx.globalAlpha=.5;ctx.drawImage(spr.camp,0,0,8,8,xT,yT,T,T)}ctx.globalAlpha=1}
-if(ti==TILE.fog){ctx.globalAlpha=(vis?0.8:0.4);ctx.fillStyle='rgba(160,160,220,0.7)';ctx.fillRect(xT,yT,T,T);ctx.globalAlpha=1;}
-const d=deco[myW+mx];if(d){
-if(d===DEC.pew){ctx.globalAlpha=(visible[myW+mx]?0.85:0.5);ctx.fillStyle='#1a2029';ctx.fillRect(xT+1,yT+T-3,T-2,2);ctx.globalAlpha=1}
-else if(d===DEC.banner){ctx.globalAlpha=(visible[myW+mx]?0.9:0.6);ctx.fillStyle='#5b6bd4';ctx.fillRect(xT+2,yT+1,T-4,T-4);ctx.globalAlpha=(visible[myW+mx]?1:0.7);ctx.fillStyle='#c870ff';ctx.fillRect(xT+3,yT+3,T-6,3)}
-else if(d===DEC.altar){ctx.globalAlpha=(visible[myW+mx]?0.95:0.6);ctx.fillStyle='#2b3342';ctx.fillRect(xT+1,yT+2,T-2,T-4);ctx.fillStyle='#c7a26b';ctx.fillRect(xT+3,yT+3,T-6,2)}
-else if(d===DEC.glass){const t=(anims.pulse%120)/120;ctx.save();ctx.globalAlpha=((visible[myW+mx]?0.14:0.08)+0.06Math.sin(t6.283));const grad=ctx.createLinearGradient(xT,yT,xT-6T,yT+8T);grad.addColorStop(0,'rgba(90,120,220,1)');grad.addColorStop(0.5,'rgba(210,80,180,0.9)');grad.addColorStop(1,'rgba(100,220,200,0.6)');ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(xT+T/2,yT);ctx.lineTo(xT-5T,yT+8T);ctx.lineTo(xT-6T,yT+8T);ctx.lineTo(xT+T/2-1,yT);ctx.closePath();ctx.fill();ctx.restore()}
-ctx.globalAlpha=1
-}
-}if(state.bloodstain){
-const vis=!fogEnabled||visible[state.bloodstain.yW+state.bloodstain.x]||floorSeen[state.bloodstain.yW+state.bloodstain.x];
-if(vis){const bx=(state.bloodstain.x-ox)T,by=(state.bloodstain.y-oy)T;if(bx>-T&&by>-T&&bx<can.width&&by<can.height){ctx.globalAlpha=.9;ctx.drawImage(spr.bloodstain,0,0,8,8,bx,by,T,T);ctx.globalAlpha=.75;ctx.fillStyle='#ff5566';ctx.font=${Math.max(8,Math.floor(T*.6))}px monospace;ctx.textAlign='center';ctx.fillText(state.bloodstain.souls.toString(),bx+T/2,by+T-2);ctx.globalAlpha=1}}}
-for(const fx of anims.campFx){if(fx.t<=0) continue;const phase=(24-fx.t)/24;const rad=1+Math.floor(2phase);ctx.save();ctx.globalAlpha=0.18+0.18(1-phase);ctx.fillStyle=palette().campGlow;for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){if(Math.abs(dx)+Math.abs(dy)<=rad){const sx=(fx.x+dx-ox)T,sy=(fx.y+dy-oy)T;ctx.fillRect(sx,sy,T,T)}}ctx.restore()}
-for(const s of anims.smoke){if(s.life<=0) continue;const age=20-Math.min(20,s.life);const sx=(s.x-ox)T+T/2+Math.sin((20-s.life)0.2)2;const sy=(s.y-oy)T+T/2-age0.6;ctx.globalAlpha=Math.max(0,s.life/26)0.35;ctx.fillStyle='rgba(220,210,200,1)';ctx.beginPath();ctx.arc(sx,sy,Math.max(1,T0.25),0,Math.PI2);ctx.fill();ctx.globalAlpha=1}
-for(const it of state.items){if(fogEnabled&&!visible[it.yW+it.x]) continue;const ix=(it.x-ox)T,iy=(it.y-oy)T;if(ix<-T||iy<-T||ix>can.width||iy>can.height) continue;
-if(it.t==='chest'){
-// draw chest (closed or opened)
-if(!it.opened){
-ctx.save();
-ctx.globalAlpha=1;
-ctx.fillStyle='#b8860b';
-const ix2=(it.x-ox)T,iy2=(it.y-oy)T;
-ctx.fillRect(ix2+T0.1, iy2+T0.4, T0.8, T0.5);
-ctx.fillStyle='#d4af37';
-ctx.fillRect(ix2+T0.1, iy2+T0.2, T0.8, T0.3);
-ctx.fillStyle='#333';
-ctx.fillRect(ix2+T0.45, iy2+T0.5, T0.1, T0.1);
-ctx.restore();
-} else {
-ctx.save();
-ctx.globalAlpha=1;
-const ix2=(it.x-ox)T,iy2=(it.y-oy)T;
-ctx.fillStyle='#b8860b';
-ctx.fillRect(ix2+T0.1, iy2+T0.5, T0.8, T0.4);
-ctx.fillStyle='#d4af37';
-ctx.fillRect(ix2+T0.1, iy2+T0.3, T0.8, T0.25);
-ctx.restore();
-}
-continue;
-}
+  if(!floorSeen) floorSeen=new Uint8Array(W*H).fill(0);
+  if(!visible) visible=new Uint8Array(W*H).fill(0);
+  if(dirtyFOV){computeFOV();dirtyFOV=false}
+  ctx.imageSmoothingEnabled=false;
+  const vw=Math.floor(can.width/T),vh=Math.floor(can.height/T);
+  const ox=Math.max(0,Math.min(state.px-(vw>>1),W-vw)),oy=Math.max(0,Math.min(state.py-(vh>>1),H-vh));
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,can.width,can.height);
+  const pal=palette();
+  for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){
+    const mx=x+ox,my=y+oy,ti=state.map[my*W+mx];
+      let seen=floorSeen[my*W+mx]?1:0;
+      let vis=visible[my*W+mx]?1:0;
+      if(state.boons.light && state.chapelRect){
+        const cr=state.chapelRect;
+        if(mx>=cr.x&&mx<cr.x+cr.w&&my>=cr.y&&my<cr.y+cr.h){
+          vis=1; seen=1;
+        }
+      }
+      const a=(!fogEnabled)?1:(vis?1:(seen?pal.tileSeen:0.16));
+    if(ti==TILE.bossGate){drawDoorCell(x,y,a)}else if(ti==TILE.wall){drawWallCell(x,y,a)}else{
+      drawFloorCell(x,y,a);
+      const n=my>0&&state.map[(my-1)*W+mx]==TILE.wall,s=my<H-1&&state.map[(my+1)*W+mx]==TILE.wall,w=mx>0&&state.map[my*W+mx-1]==TILE.wall,e=mx<W-1&&state.map[my*W+mx+1]==TILE.wall;
+      if(n||s||w||e){const sh=highContrast?pal.shadowHC:pal.shadow;const sh1=Math.max(0,Math.min(1,a*.55));const sh2=Math.max(0,Math.min(1,a*.28));
+        if(sh1>0){ctx.fillStyle=sh;ctx.globalAlpha=sh1;if(n)ctx.fillRect(x*T,y*T,T,2);if(s)ctx.fillRect(x*T,y*T+T-2,T,2);if(w)ctx.fillRect(x*T,y*T,2,T);if(e)ctx.fillRect(x*T+T-2,y*T,2,T)}
+        if(sh2>0){ctx.globalAlpha=sh2;if(n)ctx.fillRect(x*T,y*T+2,T,1);if(s)ctx.fillRect(x*T,y*T+T-3,T,1);if(w)ctx.fillRect(x*T+2,y*T,1,T);if(e)ctx.fillRect(x*T+T-3,y*T,1,T)}
+        ctx.globalAlpha=1
+      }
+    }
+    if(ti==TILE.stair){const pulse=(anims.shimmerT%60)/60;ctx.save();ctx.globalAlpha=(!fogEnabled||vis)?(0.85+0.15*Math.sin(pulse*6.283)):Math.max(0.5,pal.tileSeen);ctx.drawImage(spr.stair,0,0,16,16,x*T,y*T,T,T);ctx.restore()}
+    if(ti==TILE.camp){if(!fogEnabled||vis){ctx.globalAlpha=1;ctx.drawImage(spr.camp,0,0,8,8,x*T,y*T,T,T)}else if(seen){ctx.globalAlpha=.5;ctx.drawImage(spr.camp,0,0,8,8,x*T,y*T,T,T)}ctx.globalAlpha=1}
+    if(ti==TILE.fog){ctx.globalAlpha=(vis?0.8:0.4);ctx.fillStyle='rgba(160,160,220,0.7)';ctx.fillRect(x*T,y*T,T,T);ctx.globalAlpha=1;}
+    const d=deco[my*W+mx];if(d){
+      if(d===DEC.pew){ctx.globalAlpha=(visible[my*W+mx]?0.85:0.5);ctx.fillStyle='#1a2029';ctx.fillRect(x*T+1,y*T+T-3,T-2,2);ctx.globalAlpha=1}
+      else if(d===DEC.banner){ctx.globalAlpha=(visible[my*W+mx]?0.9:0.6);ctx.fillStyle='#5b6bd4';ctx.fillRect(x*T+2,y*T+1,T-4,T-4);ctx.globalAlpha=(visible[my*W+mx]?1:0.7);ctx.fillStyle='#c870ff';ctx.fillRect(x*T+3,y*T+3,T-6,3)}
+      else if(d===DEC.altar){ctx.globalAlpha=(visible[my*W+mx]?0.95:0.6);ctx.fillStyle='#2b3342';ctx.fillRect(x*T+1,y*T+2,T-2,T-4);ctx.fillStyle='#c7a26b';ctx.fillRect(x*T+3,y*T+3,T-6,2)}
+      else if(d===DEC.glass){const t=(anims.pulse%120)/120;ctx.save();ctx.globalAlpha=((visible[my*W+mx]?0.14:0.08)+0.06*Math.sin(t*6.283));const grad=ctx.createLinearGradient(x*T,y*T,x*T-6*T,y*T+8*T);grad.addColorStop(0,'rgba(90,120,220,1)');grad.addColorStop(0.5,'rgba(210,80,180,0.9)');grad.addColorStop(1,'rgba(100,220,200,0.6)');ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(x*T+T/2,y*T);ctx.lineTo(x*T-5*T,y*T+8*T);ctx.lineTo(x*T-6*T,y*T+8*T);ctx.lineTo(x*T+T/2-1,y*T);ctx.closePath();ctx.fill();ctx.restore()}
+      ctx.globalAlpha=1
+    }
+  }if(state.bloodstain){
+    const vis=!fogEnabled||visible[state.bloodstain.y*W+state.bloodstain.x]||floorSeen[state.bloodstain.y*W+state.bloodstain.x];
+    if(vis){const bx=(state.bloodstain.x-ox)*T,by=(state.bloodstain.y-oy)*T;if(bx>-T&&by>-T&&bx<can.width&&by<can.height){ctx.globalAlpha=.9;ctx.drawImage(spr.bloodstain,0,0,8,8,bx,by,T,T);ctx.globalAlpha=.75;ctx.fillStyle='#ff5566';ctx.font=`${Math.max(8,Math.floor(T*.6))}px monospace`;ctx.textAlign='center';ctx.fillText(state.bloodstain.souls.toString(),bx+T/2,by+T-2);ctx.globalAlpha=1}}}
+  for(const fx of anims.campFx){if(fx.t<=0) continue;const phase=(24-fx.t)/24;const rad=1+Math.floor(2*phase);ctx.save();ctx.globalAlpha=0.18+0.18*(1-phase);ctx.fillStyle=palette().campGlow;for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){if(Math.abs(dx)+Math.abs(dy)<=rad){const sx=(fx.x+dx-ox)*T,sy=(fx.y+dy-oy)*T;ctx.fillRect(sx,sy,T,T)}}ctx.restore()}
+  for(const s of anims.smoke){if(s.life<=0) continue;const age=20-Math.min(20,s.life);const sx=(s.x-ox)*T+T/2+Math.sin((20-s.life)*0.2)*2;const sy=(s.y-oy)*T+T/2-age*0.6;ctx.globalAlpha=Math.max(0,s.life/26)*0.35;ctx.fillStyle='rgba(220,210,200,1)';ctx.beginPath();ctx.arc(sx,sy,Math.max(1,T*0.25),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
+  for(const it of state.items){if(fogEnabled&&!visible[it.y*W+it.x]) continue;const ix=(it.x-ox)*T,iy=(it.y-oy)*T;if(ix<-T||iy<-T||ix>can.width||iy>can.height) continue;
+    if(it.t==='chest'){
+      // draw chest (closed or opened)
+      if(!it.opened){
+        ctx.save();
+        ctx.globalAlpha=1;
+        ctx.fillStyle='#b8860b';
+        const ix2=(it.x-ox)*T,iy2=(it.y-oy)*T;
+        ctx.fillRect(ix2+T*0.1, iy2+T*0.4, T*0.8, T*0.5);
+        ctx.fillStyle='#d4af37';
+        ctx.fillRect(ix2+T*0.1, iy2+T*0.2, T*0.8, T*0.3);
+        ctx.fillStyle='#333';
+        ctx.fillRect(ix2+T*0.45, iy2+T*0.5, T*0.1, T*0.1);
+        ctx.restore();
+      } else {
+        ctx.save();
+        ctx.globalAlpha=1;
+        const ix2=(it.x-ox)*T,iy2=(it.y-oy)*T;
+        ctx.fillStyle='#b8860b';
+        ctx.fillRect(ix2+T*0.1, iy2+T*0.5, T*0.8, T*0.4);
+        ctx.fillStyle='#d4af37';
+        ctx.fillRect(ix2+T*0.1, iy2+T*0.3, T*0.8, T*0.25);
+        ctx.restore();
+      }
+      continue;
+    }
 if(it.t=='souls')ctx.drawImage(spr.souls,0,0,8,8,ix,iy,T,T);if(it.t=='weapon'){const s=(it.w==='sword'?spr.sword:it.w==='spear'?spr.spear:spr.dagger);ctx.drawImage(s,0,0,8,8,ix,iy,T,T)}}
-const bob=Math.sin((anims.idle%60)/606.283)0.15;
-for(const m of state.mons){if(fogEnabled&&!visible[m.yW+m.x]) continue;let px=(m.x-ox)T,py=(m.y-oy)T;const nudgeA=anims.move.find(mm=>mm.e===m);if(nudgeA){px+=nudgeA.dxT(nudgeA.t/2);py+=nudgeA.dyT(nudgeA.t/2)}py+=bob;if(m.t==='boss'){ctx.drawImage(spr.boss16,0,0,16,16,px-T/2,py-T/2,T2,T2)}else{const s=(m.t==='slime'?spr.slime:spr.cultist);ctx.drawImage(s,0,0,8,8,px,py,T,T)}}
-for(const fx of anims.bossFx){if(fx.t<=0) continue;const alpha=fx.t/14;if(fx.kind==='shock'){ctx.save();ctx.globalAlpha=0.18+0.22alpha;ctx.fillStyle='#fcb300';const r=fx.r;for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.abs(dx)+Math.abs(dy)<=r){const sx=(fx.x+dx-ox)T,sy=(fx.y+dy-oy)T;ctx.fillRect(sx,sy,T,T)}}ctx.restore()}else if(fx.kind==='slash'){ctx.save();ctx.globalAlpha=0.2+0.4alpha;ctx.drawImage(spr.bossShock,0,0,16,16,(fx.x-ox-0.5)T,(fx.y-oy-0.5)T,T2,T2);for(let i=1;i<=fx.len;i++){const sx=(fx.x+fx.dxi-ox)T,sy=(fx.y+fx.dyi-oy)T;ctx.globalAlpha=0.15+0.25(alpha);ctx.fillStyle='#ff5566';ctx.fillRect(sx,sy,T,T)}ctx.restore()}}
-let ppx=(state.px-ox)T,ppy=(state.py-oy)T;const pnudge=anims.move.find(mm=>mm.e===state);if(pnudge){ppx+=pnudge.dxT(pnudge.t/2);ppy+=pnudge.dyT*(pnudge.t/2)}
-ctx.save();const auraBase=state.boons.light?0.24:0.16;ctx.globalAlpha=auraBase+0.06Math.sin((anims.pulse%60)/606.283);const auraRad=state.boons.light?2:1;for(let dy=-auraRad;dy<=auraRad;dy++)for(let dx=-auraRad;dx<=auraRad;dx++){if(Math.abs(dx)+Math.abs(dy)<=auraRad){ctx.drawImage(spr.ember,0,0,8,8,ppx+dxT,ppy+dyT,T,T)}}ctx.restore();
-ctx.drawImage(spr.player,0,0,16,16,ppx-4,ppy-6,T+8,T+8);
-for(const tr of anims.trails){if(tr.t>0){ctx.globalAlpha=tr.t/6;ctx.strokeStyle='#ddd';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo((tr.x0-ox+.5)T,(tr.y0-oy+.5)T);ctx.lineTo((tr.x1-ox+.5)T,(tr.y1-oy+.5)T);ctx.stroke();ctx.globalAlpha=1}}
-for(const f of anims.floaters){if(f.t>0){const ax=(f.x-ox)T+T/2,ay=(f.y-oy)T+T/2-(12-f.t);ctx.globalAlpha=f.t/12;ctx.fillStyle=f.c;ctx.font=${Math.max(8,Math.floor(T*.7))}px monospace;ctx.textAlign='center';ctx.fillText(f.text,ax,ay);ctx.globalAlpha=1}}
-if(fogEnabled){const palFog=palette();for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){const mx=x+Math.max(0,Math.min(state.px-(vw>>1),W-vw));const my=y+Math.max(0,Math.min(state.py-(vh>>1),H-vh));const vis=visible[myW+mx],seen=floorSeen[myW+mx];if(!seen){ctx.fillStyle=palFog.fogDark;ctx.fillRect(xT,yT,T,T)}else if(!vis){ctx.fillStyle=palFog.fogSoft;ctx.fillRect(xT,yT,T,T)}}}
-
-// highlight boss arena entry door
-if(state.bossEntry){
-const bx=(state.bossEntry.x-ox)T, by=(state.bossEntry.y-oy)T;
-ctx.save();
-ctx.lineWidth=2;
-if(state.inBossArena && state.mons.some(m=>m.t==='boss')){
-ctx.strokeStyle='rgba(255,100,100,0.7)';
-} else {
-ctx.strokeStyle='rgba(100,200,255,0.6)';
-}
-ctx.strokeRect(bx+2,by+2,T-4,T-4);
-ctx.restore();
-}
+  const bob=Math.sin((anims.idle%60)/60*6.283)*0.15;
+  for(const m of state.mons){if(fogEnabled&&!visible[m.y*W+m.x]) continue;let px=(m.x-ox)*T,py=(m.y-oy)*T;const nudgeA=anims.move.find(mm=>mm.e===m);if(nudgeA){px+=nudgeA.dx*T*(nudgeA.t/2);py+=nudgeA.dy*T*(nudgeA.t/2)}py+=bob;if(m.t==='boss'){ctx.drawImage(spr.boss16,0,0,16,16,px-T/2,py-T/2,T*2,T*2)}else{const s=(m.t==='slime'?spr.slime:spr.cultist);ctx.drawImage(s,0,0,8,8,px,py,T,T)}}
+  for(const fx of anims.bossFx){if(fx.t<=0) continue;const alpha=fx.t/14;if(fx.kind==='shock'){ctx.save();ctx.globalAlpha=0.18+0.22*alpha;ctx.fillStyle='#fcb300';const r=fx.r;for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.abs(dx)+Math.abs(dy)<=r){const sx=(fx.x+dx-ox)*T,sy=(fx.y+dy-oy)*T;ctx.fillRect(sx,sy,T,T)}}ctx.restore()}else if(fx.kind==='slash'){ctx.save();ctx.globalAlpha=0.2+0.4*alpha;ctx.drawImage(spr.bossShock,0,0,16,16,(fx.x-ox-0.5)*T,(fx.y-oy-0.5)*T,T*2,T*2);for(let i=1;i<=fx.len;i++){const sx=(fx.x+fx.dx*i-ox)*T,sy=(fx.y+fx.dy*i-oy)*T;ctx.globalAlpha=0.15+0.25*(alpha);ctx.fillStyle='#ff5566';ctx.fillRect(sx,sy,T,T)}ctx.restore()}}
+  let ppx=(state.px-ox)*T,ppy=(state.py-oy)*T;const pnudge=anims.move.find(mm=>mm.e===state);if(pnudge){ppx+=pnudge.dx*T*(pnudge.t/2);ppy+=pnudge.dy*T*(pnudge.t/2)}
+  ctx.save();const auraBase=state.boons.light?0.24:0.16;ctx.globalAlpha=auraBase+0.06*Math.sin((anims.pulse%60)/60*6.283);const auraRad=state.boons.light?2:1;for(let dy=-auraRad;dy<=auraRad;dy++)for(let dx=-auraRad;dx<=auraRad;dx++){if(Math.abs(dx)+Math.abs(dy)<=auraRad){ctx.drawImage(spr.ember,0,0,8,8,ppx+dx*T,ppy+dy*T,T,T)}}ctx.restore();
+  ctx.drawImage(spr.player,0,0,16,16,ppx-4,ppy-6,T+8,T+8);
+  for(const tr of anims.trails){if(tr.t>0){ctx.globalAlpha=tr.t/6;ctx.strokeStyle='#ddd';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo((tr.x0-ox+.5)*T,(tr.y0-oy+.5)*T);ctx.lineTo((tr.x1-ox+.5)*T,(tr.y1-oy+.5)*T);ctx.stroke();ctx.globalAlpha=1}}
+  for(const f of anims.floaters){if(f.t>0){const ax=(f.x-ox)*T+T/2,ay=(f.y-oy)*T+T/2-(12-f.t);ctx.globalAlpha=f.t/12;ctx.fillStyle=f.c;ctx.font=`${Math.max(8,Math.floor(T*.7))}px monospace`;ctx.textAlign='center';ctx.fillText(f.text,ax,ay);ctx.globalAlpha=1}}
+  if(fogEnabled){const palFog=palette();for(let y=0;y<vh;y++)for(let x=0;x<vw;x++){const mx=x+Math.max(0,Math.min(state.px-(vw>>1),W-vw));const my=y+Math.max(0,Math.min(state.py-(vh>>1),H-vh));const vis=visible[my*W+mx],seen=floorSeen[my*W+mx];if(!seen){ctx.fillStyle=palFog.fogDark;ctx.fillRect(x*T,y*T,T,T)}else if(!vis){ctx.fillStyle=palFog.fogSoft;ctx.fillRect(x*T,y*T,T,T)}}}
+  
+  // highlight boss arena entry door
+  if(state.bossEntry){
+    const bx=(state.bossEntry.x-ox)*T, by=(state.bossEntry.y-oy)*T;
+    ctx.save();
+    ctx.lineWidth=2;
+    if(state.inBossArena && state.mons.some(m=>m.t==='boss')){
+      ctx.strokeStyle='rgba(255,100,100,0.7)';
+    } else {
+      ctx.strokeStyle='rgba(100,200,255,0.6)';
+    }
+    ctx.strokeRect(bx+2,by+2,T-4,T-4);
+    ctx.restore();
+  }
 updateHud()
 }
 function updateHud(){
-const hp=Math.max(0,state.hp),hpMax=Math.max(1,state.hpmax);
-const st=Math.max(0,Math.floor(state.sta)),stMax=Math.max(1,state.stamax);
-hpFill.style.width=Math.max(0,Math.min(100,Math.round(hp/hpMax100)))+'%';
-staFill.style.width=Math.max(0,Math.min(100,Math.round(st/stMax100)))+'%';
-hpText.textContent=hp+'/'+hpMax;
-staText.textContent=st+'/'+stMax;
-soulsText.textContent=state.souls;
-weaponText.textContent=state.weapon?.name||'—';
-flaskText.textContent=${state.flasks}/${state.flasksMax};
-bossKeyText.textContent=state.hasBossKey?'Boss':'—';
-chestKeyText.textContent=(state.chestKeys||0);
-updateMenuUI()
+  const hp=Math.max(0,state.hp),hpMax=Math.max(1,state.hpmax);
+  const st=Math.max(0,Math.floor(state.sta)),stMax=Math.max(1,state.stamax);
+  hpFill.style.width=Math.max(0,Math.min(100,Math.round(hp/hpMax*100)))+'%';
+  staFill.style.width=Math.max(0,Math.min(100,Math.round(st/stMax*100)))+'%';
+  hpText.textContent=hp+'/'+hpMax;
+  staText.textContent=st+'/'+stMax;
+  soulsText.textContent=state.souls;
+  weaponText.textContent=state.weapon?.name||'—';
+  flaskText.textContent=`${state.flasks}/${state.flasksMax}`;
+  bossKeyText.textContent=state.hasBossKey?'Boss':'—';
+  chestKeyText.textContent=(state.chestKeys||0);
+  updateMenuUI()
 }
 function spend(cost){if(state.souls>=cost){state.souls-=cost;updateHud();return true}nmsg('Not enough souls.','#aaa');return false}
 const prices={hp:20,sta:18,sharp:25,sword:30,spear:30,light:50,bosskey:50, chestkey:10,};
 
+
 function adjustZoom(delta){
-const wrapEl=document.getElementById('wrap')
-const bottomH=document.getElementById('bottombar').offsetHeight
-const isNarrow=window.matchMedia('(max-width:900px)').matches
-const topH=document.getElementById('topbar').offsetHeight
-let availW=wrapEl.clientWidth-6
-let availH=(isNarrow?(window.innerHeight-document.getElementById('panel').offsetHeight-bottomH-topH):(wrapEl.clientHeight))-6
-availW=Math.max(80,availW);availH=Math.max(80,availH)
-let autoS=Math.floor(Math.min(availW/W,availH/H))
-autoS=Math.max((isNarrow?18:16),Math.min(48,autoS));
-if(userZoom===null) userZoom=autoS;
-userZoom = Math.min(64, Math.max(12, userZoom + delta));
-nmsg('Zoom: '+userZoom+' px per tile','#9f9');
-resize();
+  const wrapEl=document.getElementById('wrap')
+  const bottomH=document.getElementById('bottombar').offsetHeight
+  const isNarrow=window.matchMedia('(max-width:900px)').matches
+  const topH=document.getElementById('topbar').offsetHeight
+  let availW=wrapEl.clientWidth-6
+  let availH=(isNarrow?(window.innerHeight-document.getElementById('panel').offsetHeight-bottomH-topH):(wrapEl.clientHeight))-6
+  availW=Math.max(80,availW);availH=Math.max(80,availH)
+  let autoS=Math.floor(Math.min(availW/W,availH/H))
+  autoS=Math.max((isNarrow?18:16),Math.min(48,autoS));
+  if(userZoom===null) userZoom=autoS;
+  userZoom = Math.min(64, Math.max(12, userZoom + delta));
+  nmsg('Zoom: '+userZoom+' px per tile','#9f9');
+  resize();
 }
 
 function onKey(e){
-if(modalOverlay.classList.contains('show'))return;
-const k=e.key;
-if(k==='+'||k==='='){adjustZoom(2);return;}else if(k==='-'){adjustZoom(-2);return;}else if(k==='0'){userZoom=null;nmsg('Zoom: auto','#9f9');resize();return;}
-const handled=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D','>','.',' ','r','R','N','M','m','l','L','h','H','Escape','+','-','0'].includes(k);
-if(handled)e.preventDefault();
-if(state.dead&&deathScr.classList.contains('show')){confirmDeathContinue();return}
-if(k=='Escape'){setMenuOpen(false);return}
-if(k=='l'||k=='L'){if(canUseCampMenu()){setMenuOpen(!campMenuOverlay.classList.contains('show'))}else{nmsg('You must stand on a campfire to open the menu.','#aaa')}return}
-if(k=='h'||k=='H'){useFlask();return}
-if(k=='ArrowUp'||k=='w'||k=='W')move(0,-1);
-else if(k=='ArrowDown'||k=='s'||k=='S')move(0,1);
-else if(k=='ArrowLeft'||k=='a'||k=='A')move(-1,0);
-else if(k=='ArrowRight'||k=='d'||k==='D')move(1,0);
-else if(k=='.'){endTurn(true)}
-else if(k==' '){reachAttack()}
-else if(k=='>'){tryDescend()}
-else if(k=='m'||k=='M'){setLogVisible(!logVisible)}
-else if(k=='r'||k=='R'||k=='N'){newGame()}
+  if(modalOverlay.classList.contains('show'))return;
+  const k=e.key;
+  if(k==='+'||k==='='){adjustZoom(2);return;}else if(k==='-'){adjustZoom(-2);return;}else if(k==='0'){userZoom=null;nmsg('Zoom: auto','#9f9');resize();return;}
+  const handled=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D','>','.',' ','r','R','N','M','m','l','L','h','H','Escape','+','-','0'].includes(k);
+  if(handled)e.preventDefault();
+  if(state.dead&&deathScr.classList.contains('show')){confirmDeathContinue();return}
+  if(k=='Escape'){setMenuOpen(false);return}
+  if(k=='l'||k=='L'){if(canUseCampMenu()){setMenuOpen(!campMenuOverlay.classList.contains('show'))}else{nmsg('You must stand on a campfire to open the menu.','#aaa')}return}
+  if(k=='h'||k=='H'){useFlask();return}
+  if(k=='ArrowUp'||k=='w'||k=='W')move(0,-1);
+  else if(k=='ArrowDown'||k=='s'||k=='S')move(0,1);
+  else if(k=='ArrowLeft'||k=='a'||k=='A')move(-1,0);
+  else if(k=='ArrowRight'||k=='d'||k==='D')move(1,0);
+  else if(k=='.'){endTurn(true)}
+  else if(k==' '){reachAttack()}
+  else if(k=='>'){tryDescend()}
+  else if(k=='m'||k=='M'){setLogVisible(!logVisible)}
+  else if(k=='r'||k=='R'||k=='N'){newGame()}
 }
 
 function tryDescend(){
-if(state.map[state.py*W+state.px]===TILE.stair){
-const bossAlive=state.mons.some(m=>m.t==='boss');
-if(bossAlive){nmsg('The Warden blocks the way! Defeat it first!','#f77');return}
-// progression: need level key (boss key) to descend to next level
-if(!state.hasBossKey){
-nmsg('The stairs are sealed. You need the level key to descend.','#aaa');
-return;
-}
-const current=state.currentLevelIndex||0;
-if(current < levelConfigs.length - 1){
-state.hasBossKey=false;
-nmsg('You descend to '+levelConfigs[current+1].name+'...','#9f9');
-loadLevel(current+1,true);
-} else {
-nmsg('You descend the stairs...','#9f9');onWin();
-}
-}else{nmsg('No stairs here.','#aaa')}
+  if(state.map[state.py*W+state.px]===TILE.stair){
+    const bossAlive=state.mons.some(m=>m.t==='boss');
+    if(bossAlive){nmsg('The Warden blocks the way! Defeat it first!','#f77');return}
+    // progression: need level key (boss key) to descend to next level
+    if(!state.hasBossKey){
+      nmsg('The stairs are sealed. You need the level key to descend.','#aaa');
+      return;
+    }
+    const current=state.currentLevelIndex||0;
+    if(current < levelConfigs.length - 1){
+      state.hasBossKey=false;
+      nmsg('You descend to '+levelConfigs[current+1].name+'...','#9f9');
+      loadLevel(current+1,true);
+    } else {
+      nmsg('You descend the stairs...','#9f9');onWin();
+    }
+  }else{nmsg('No stairs here.','#aaa')}
 }
 
 function enterFogGate(nx,ny){
-const onGate=state.gateCells.some(g=>g.x===nx&&g.y===ny);
-if(!onGate) return;
-nmsg('You pass through the fog gate.','#8bd5ff');
-for(const g of state.gateCells)setTile(state.map,g.x,g.y,TILE.floor);
-rebuildBlockers();dirtyFOV=true;state.px=nx;state.py=ny;floatAt(nx,ny,'FOG','#8bd5ff')
+  const onGate=state.gateCells.some(g=>g.x===nx&&g.y===ny);
+  if(!onGate) return;
+  nmsg('You pass through the fog gate.','#8bd5ff');
+  for(const g of state.gateCells)setTile(state.map,g.x,g.y,TILE.floor);
+  rebuildBlockers();dirtyFOV=true;state.px=nx;state.py=ny;floatAt(nx,ny,'FOG','#8bd5ff')
 }
 function openFogGate(){
-if(!state.gateCells) return;
-nmsg('The fog dissipates.','#9f9');
-for(const g of state.gateCells)setTile(state.map,g.x,g.y,TILE.floor);
-rebuildBlockers();dirtyFOV=true
+  if(!state.gateCells) return;
+  nmsg('The fog dissipates.','#9f9');
+  for(const g of state.gateCells)setTile(state.map,g.x,g.y,TILE.floor);
+  rebuildBlockers();dirtyFOV=true
 }
 
 function tick(){
-for(let i=anims.move.length-1;i>=0;i--){const m=anims.move[i];m.t--;if(m.t<=0)anims.move.splice(i,1)}
-for(let i=anims.trails.length-1;i>=0;i--){const t=anims.trails[i];t.t--;if(t.t<=0)anims.trails.splice(i,1)}
-for(let i=anims.floaters.length-1;i>=0;i--){const f=anims.floaters[i];f.t--;if(f.t<=0)anims.floaters.splice(i,1)}
-for(let i=anims.bossFx.length-1;i>=0;i--){const f=anims.bossFx[i];f.t--;if(f.t<=0)anims.bossFx.splice(i,1)}
-for(let i=anims.campFx.length-1;i>=0;i--){const f=anims.campFx[i];f.t--;if(f.t<=0)anims.campFx.splice(i,1)}
-for(let i=anims.smoke.length-1;i>=0;i--){const s=anims.smoke[i];s.life--;if(s.life<=0)anims.smoke.splice(i,1)}
-anims.pulse++;anims.shimmerT++;anims.idle++;render();requestAnimationFrame(tick)
+  for(let i=anims.move.length-1;i>=0;i--){const m=anims.move[i];m.t--;if(m.t<=0)anims.move.splice(i,1)}
+  for(let i=anims.trails.length-1;i>=0;i--){const t=anims.trails[i];t.t--;if(t.t<=0)anims.trails.splice(i,1)}
+  for(let i=anims.floaters.length-1;i>=0;i--){const f=anims.floaters[i];f.t--;if(f.t<=0)anims.floaters.splice(i,1)}
+  for(let i=anims.bossFx.length-1;i>=0;i--){const f=anims.bossFx[i];f.t--;if(f.t<=0)anims.bossFx.splice(i,1)}
+  for(let i=anims.campFx.length-1;i>=0;i--){const f=anims.campFx[i];f.t--;if(f.t<=0)anims.campFx.splice(i,1)}
+  for(let i=anims.smoke.length-1;i>=0;i--){const s=anims.smoke[i];s.life--;if(s.life<=0)anims.smoke.splice(i,1)}
+  anims.pulse++;anims.shimmerT++;anims.idle++;render();requestAnimationFrame(tick)
 }
 function resize(){
-const wrapEl=document.getElementById('wrap')
-const bottomH=document.getElementById('bottombar').offsetHeight
-const isNarrow=window.matchMedia('(max-width:900px)').matches
-const topH=document.getElementById('topbar').offsetHeight
-let availW=wrapEl.clientWidth-6
-let availH=(isNarrow?(window.innerHeight-document.getElementById('panel').offsetHeight-bottomH-topH):(wrapEl.clientHeight))-6
-availW=Math.max(80,availW);availH=Math.max(80,availH)
-let s=Math.floor(Math.min(availW/W,availH/H))
-s=Math.max((isNarrow?18:16),Math.min(48,s));
-if(userZoom!=null){
-s = userZoom;
-}
-T=s;can.width=WT;can.height=HT;render()
+  const wrapEl=document.getElementById('wrap')
+  const bottomH=document.getElementById('bottombar').offsetHeight
+  const isNarrow=window.matchMedia('(max-width:900px)').matches
+  const topH=document.getElementById('topbar').offsetHeight
+  let availW=wrapEl.clientWidth-6
+  let availH=(isNarrow?(window.innerHeight-document.getElementById('panel').offsetHeight-bottomH-topH):(wrapEl.clientHeight))-6
+  availW=Math.max(80,availW);availH=Math.max(80,availH)
+  let s=Math.floor(Math.min(availW/W,availH/H))
+  s=Math.max((isNarrow?18:16),Math.min(48,s));
+  if(userZoom!=null){
+    s = userZoom;
+  }
+  T=s;can.width=W*T;can.height=H*T;render()
 }
 function newGame(seedIn){
-if(seedIn!=null){seedv=seedIn|0}else{seedv=((Math.random()*2**31)|0)}
-loadLevel(0,false);
+  if(seedIn!=null){seedv=seedIn|0}else{seedv=((Math.random()*2**31)|0)}
+  loadLevel(0,false);
 }
 setLogVisible(!window.matchMedia('(max-width:900px)').matches);
-hideOverlays();setMenuOpen(false);dirtyFOV=true;actedThisTurn.attacked=false;resize();render()
+  hideOverlays();setMenuOpen(false);dirtyFOV=true;actedThisTurn.attacked=false;resize();render()
 function findSafeBloodstainSpot(px,py){if(!actorAt(px,py)&&pass(px,py)) return{x:px,y:py};const maxR=3;for(let r=1;r<=maxR;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=px+dx,y=py+dy;if(x<0||y<0||x>=W||y>=H) continue;if(!actorAt(x,y)&&pass(x,y)) return{x,y}}return{x:px,y:py}}
 function onDeath(){
-if(state.dead)return;
-let spot=findSafeBloodstainSpot(state.px,state.py);
-if(state.souls>0){state.bloodstain={x:spot.x,y:spot.y,souls:state.souls};nmsg(You leave a bloodstain containing ${state.souls} souls.,'#f77');state.souls=0}
-else{state.bloodstain={x:spot.x,y:spot.y,souls:0}}
-state.dead=true;deathScr.classList.add('show');setMenuOpen(false);nmsg('YOU DIED','#f55')
+  if(state.dead)return;
+  let spot=findSafeBloodstainSpot(state.px,state.py);
+  if(state.souls>0){state.bloodstain={x:spot.x,y:spot.y,souls:state.souls};nmsg(`You leave a bloodstain containing ${state.souls} souls.`,'#f77');state.souls=0}
+  else{state.bloodstain={x:spot.x,y:spot.y,souls:0}}
+  state.dead=true;deathScr.classList.add('show');setMenuOpen(false);nmsg('YOU DIED','#f55')
 }
 function confirmDeathContinue(){
-if(!state.dead)return;
-deathScr.classList.remove('show');
-if(state.checkpoint&&!state.won){
-nmsg('The campfire rekindles you.','#ffb347');
-state.hp=state.hpmax;state.sta=state.stamax;state.px=state.checkpoint.x;state.py=state.checkpoint.y;
-respawnAllMobs();hideOverlays();state.dead=false;rebuildBlockers();dirtyFOV=true;render()
-}
+  if(!state.dead)return;
+  deathScr.classList.remove('show');
+  if(state.checkpoint&&!state.won){
+    nmsg('The campfire rekindles you.','#ffb347');
+    state.hp=state.hpmax;state.sta=state.stamax;state.px=state.checkpoint.x;state.py=state.checkpoint.y;
+    respawnAllMobs();hideOverlays();state.dead=false;rebuildBlockers();dirtyFOV=true;render()
+  }
 }
 function onWin(){if(state.won)return;state.won=true;setMenuOpen(false);winScr.classList.add('show')}
 function setLogVisible(f){logVisible=f;logWrap.classList.toggle('hide',!logVisible);logToggle.textContent=logVisible?'Collapse':'Expand';resize()}
@@ -913,24 +1052,24 @@ deathScr.addEventListener('click',confirmDeathContinue);
 // Guard for ResizeObserver support and safe usage
 const panel=document.getElementById('panel');
 if('ResizeObserver' in window){
-const panelResizeObserver=new ResizeObserver(()=>resize());
-panelResizeObserver.observe(panel);
+  const panelResizeObserver=new ResizeObserver(()=>resize());
+  panelResizeObserver.observe(panel);
 }else{
-window.addEventListener('resize',resize);
+  window.addEventListener('resize',resize);
 }
 
 newGame();
 window.addEventListener('keydown', onKey);
-// TEST MODE: give player 100k souls for testing
-if(state){
-state.souls=100000;
-if(typeof updateMenuUI==='function') updateMenuUI();
-nmsg('Test: 100,000 souls granted','#6df');
-}
+  // TEST MODE: give player 100k souls for testing
+  if(state){
+    state.souls=100000;
+    if(typeof updateMenuUI==='function') updateMenuUI();
+    nmsg('Test: 100,000 souls granted','#6df');
+  }
 
 setLogVisible(!window.matchMedia('(max-width:900px)').matches);
 resize();
 requestAnimationFrame(tick);
 </script>
-
-</body> </html>
+</body>
+</html>
