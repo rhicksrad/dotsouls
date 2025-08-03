@@ -621,7 +621,7 @@ state.mons = state.mons.filter(m => m !== b);
 function reachAttack(){
 if(state.dead||state.won) return;
 const r=state.weapon.reach||1;
-const cost=STAMINA.attackBase+Math.max(0,r-1)STAMINA.extraReach;
+const cost = STAMINA.attackBase + Math.max(0, r - 1) * STAMINA.extraReach;
 if(state.sta<cost){nmsg('Too exhausted to attack.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}
 let hits=0;const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
 for(const[dx,dy] of dirs){for(let d=1;d<=r;d++){const x=state.px+dxd,y=state.py+dy*d;const m=actorAt(x,y);if(m){attack(state,m);hits++;break}if(!pass(x,y))break}}
@@ -1105,6 +1105,7 @@ requestAnimationFrame(tick);
 </script>
 </body>
 </html>
+
 
 
 
