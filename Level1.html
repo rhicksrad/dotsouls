@@ -672,10 +672,17 @@ function handleCellEnter(nx,ny){
     if(it.t=='weapon'){equipWeapon(it.w)}
     state.items=state.items.filter(a=>a!==it)
   }
-  if(state.bloodstain&&state.bloodstain.x===nx&&state.bloodstain.y===ny){
-    state.bloodstain=null;
+if (state.bloodstain && state.bloodstain.x === nx && state.bloodstain.y === ny) {
+  const recovered = state.bloodstain.souls || 0;
+  if (recovered > 0) {
+    state.souls += recovered;
+    nmsg(`You recovered ${recovered} souls.`, palette().gold);
+    floatAt(nx, ny, '+' + recovered, palette().gold);
+  } else {
+    nmsg('You touch the bloodstain, but it holds no souls.', '#aaa');
   }
-  return false;
+  state.bloodstain = null;
+  updateHud();
 }
 function move(dx,dy){
   if(state.dead||state.won) return;
@@ -1060,3 +1067,4 @@ requestAnimationFrame(tick);
 </script>
 </body>
 </html>
+
