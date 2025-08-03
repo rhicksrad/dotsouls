@@ -575,42 +575,43 @@ function attack(a,b){
     nmsg(`${monName(a)} hits you for ${dmg}.`,'#f66');
     if(state.hp<=0){onDeath();return}
   }
-  if((b.hp||0)<=0){
-    if(b===state) return;
-    let gain=0;
-    if(b.t==='slime')gain=3;
-    else if(b.t==='cultist')gain=5;
-    else if(b.t==='boss')gain=35;
-    state.souls+=gain;floatAt(b.x,b.y,'+'+gain,palette().gold);
-    nmsg(`You killed ${monName(b)}${gain?` and gained ${gain} souls`:''}.`,palette().gold);
-    if(b.t==='boss'){
-      nmsg(`${monName(b)} defeated!`,'#9f9');
-      if(state.inBossArena){
-        state.inBossArena=false;
-        state.bossArenaSealed=false;
-        dirtyFOV=true;
-        nmsg('The door is unsealed. You can leave the arena.','#9f9');
+  if ((b.hp || 0) <= 0) {
+    if (b === state) return;
+    let gain = 0;
+    if (b.t === 'slime') gain = 3;
+    else if (b.t === 'cultist') gain = 5;
+    else if (b.t === 'boss') gain = 35;
+    state.souls += gain;
+    floatAt(b.x, b.y, '+' + gain, palette().gold);
+    nmsg(`You killed ${monName(b)}${gain ? ` and gained ${gain} souls` : ''}.`, palette().gold);
+    if (b.t === 'boss') {
+      nmsg(`${monName(b)} defeated!`, '#9f9');
+      if (state.inBossArena) {
+        state.inBossArena = false;
+        state.bossArenaSealed = false;
+        dirtyFOV = true;
+        nmsg('The door is unsealed. You can leave the arena.', '#9f9');
       }
-      // spawn reward chest at boss location with the boss-specific weapon
-      if(!state.items.find(i=>i.t==='chest' && i.x===b.x && i.y===b.y)){
-        const chest={x:b.x,y:b.y,t:'chest',opened:false};
-        if(b.dropWeapon){chest.bossChest=true;chest.weaponDrop=b.dropWeapon;}
+      if (!state.items.find(i => i.t === 'chest' && i.x === b.x && i.y === b.y)) {
+        const chest = { x: b.x, y: b.y, t: 'chest', opened: false, bossChest: true };
+        chest.weaponDrop = b.dropWeapon || 'longsword';
         state.items.push(chest);
-        nmsg(`A chest appears where ${monName(b)} fell!`,'#9f9');
+        nmsg(`A chest appears where ${monName(b)} fell!`, '#9f9');
       }
     }
-    state.mons=state.mons.filter(m=>m!==b)
+    state.mons = state.mons.filter(m => m !== b);
   }
 }
+
 function reachAttack(){
-  if(state.dead||state.won) return;
-  const r=state.weapon.reach||1;
-  const cost=STAMINA.attackBase+Math.max(0,r-1)*STAMINA.extraReach;
-  if(state.sta<cost){nmsg('Too exhausted to attack.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}
-  let hits=0;const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
-  for(const[dx,dy] of dirs){for(let d=1;d<=r;d++){const x=state.px+dx*d,y=state.py+dy*d;const m=actorAt(x,y);if(m){attack(state,m);hits++;break}if(!pass(x,y))break}}  
-  if(!hits){nmsg('You swing at the air.','#aaa')}
-  state.sta=Math.max(0,state.sta-cost);endTurn()
+if(state.dead||state.won) return;
+const r=state.weapon.reach||1;
+const cost=STAMINA.attackBase+Math.max(0,r-1)*STAMINA.extraReach;
+if(state.sta<cost){nmsg('Too exhausted to attack.','#aaa');floatAt(state.px,state.py,'EXHAUSTED','#bbb');return}
+let hits=0;const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+for(const[dx,dy] of dirs){for(let d=1;d<=r;d++){const x = state.px + dx * d,y=state.py+dy*d;const m=actorAt(x,y);if(m){attack(state,m);hits++;break}if(!pass(x,y))break}}
+if(!hits){nmsg('You swing at the air.','#aaa')}
+state.sta=Math.max(0,state.sta-cost);endTurn()
 }
 function equipWeapon(w){
   if(w==='sword'){state.weapon={name:'Sword',melee:2,reach:1,range:0}}
@@ -1062,9 +1063,9 @@ newGame();
 window.addEventListener('keydown', onKey);
   // TEST MODE: give player 100k souls for testing
   if(state){
-    state.souls=50;
+    state.souls=5000;
     if(typeof updateMenuUI==='function') updateMenuUI();
-    nmsg('Test: 50 souls granted','#6df');
+    nmsg('Test: 5000 souls granted','#6df');
   }
 
 setLogVisible(!window.matchMedia('(max-width:900px)').matches);
@@ -1073,4 +1074,3 @@ requestAnimationFrame(tick);
 </script>
 </body>
 </html>
-
