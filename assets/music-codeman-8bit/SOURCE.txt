@@ -1,0 +1,13 @@
+8-bit Music Pack (Loopable)
+Author: CodeManu
+Source: https://opengameart.org/content/8-bit-music-pack-loopable
+License: CC-BY 3.0
+License URL: https://creativecommons.org/licenses/by/3.0/
+
+Downloaded files:
+- bgm_action_1.mp3
+- bgm_action_2.mp3
+- bgm_action_3.mp3
+- bgm_action_4.mp3
+- bgm_action_5.mp3
+- bgm_menu.mp3
